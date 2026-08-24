@@ -1,0 +1,912 @@
+<mujoco model="rigid_cage_walker">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.0002" integrator="implicitfast" solver="Newton"
+          iterations="50"/>
+  <visual><global offwidth="1600" offheight="1200"/></visual>
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.88 0.89 0.90"
+             rgb2="0.96 0.96 0.97" width="512" height="512"/>
+    <material name="grid" texture="grid" texrepeat="10 10"/>
+  </asset>
+  <worldbody>
+    <light pos="1.2 -1.2 2.6" dir="-0.4 0.4 -1" directional="true"/>
+    <geom name="floor" type="plane" size="6 6 0.1" material="grid"
+          contype="1" conaffinity="1" friction="1.2 0.01 0.001"/>
+    
+    <body name="foot_l" pos="-0.00000 0.10000 0.15000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.09000 -0.15000 -0.04527 -0.07778 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 -0.04500 -0.15000 0.09000 -0.00031 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 -0.04500 -0.15000 -0.04473 0.07810 0.15000"/>
+      <geom type="sphere" size="0.03" mass="0.4" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <geom name="pad_foot_l" type="sphere" size="0.03" mass="0.05" contype="1" conaffinity="1" friction="1.2 0.01 0.001" pos="0.00000 0.09000 -0.15000"/>
+      <site name="foot_l_b0" pos="0.00000 0.09000 -0.15000" size="0.006"/>
+      <site name="foot_l_b1" pos="-0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="foot_l_b2" pos="0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="foot_l_t0" pos="-0.04473 0.07810 0.15000" size="0.006"/>
+      <site name="foot_l_t1" pos="-0.04527 -0.07778 0.15000" size="0.006"/>
+      <site name="foot_l_t2" pos="0.09000 -0.00031 0.15000" size="0.006"/>
+    </body>
+    <body name="shank_l" pos="0.00000 0.10000 0.36000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 0.04500 -0.15000 0.04473 -0.07810 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.09000 -0.15000 0.04527 0.07778 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 0.04500 -0.15000 -0.09000 0.00031 0.15000"/>
+      <geom type="sphere" size="0.03" mass="1.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="shank_l_b0" pos="-0.07794 0.04500 -0.15000" size="0.006"/>
+      <site name="shank_l_b1" pos="-0.00000 -0.09000 -0.15000" size="0.006"/>
+      <site name="shank_l_b2" pos="0.07794 0.04500 -0.15000" size="0.006"/>
+      <site name="shank_l_t0" pos="-0.09000 0.00031 0.15000" size="0.006"/>
+      <site name="shank_l_t1" pos="0.04473 -0.07810 0.15000" size="0.006"/>
+      <site name="shank_l_t2" pos="0.04527 0.07778 0.15000" size="0.006"/>
+    </body>
+    <body name="thigh_l" pos="0.00000 0.10000 0.57000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 -0.04500 -0.15000 0.09000 -0.00031 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 -0.04500 -0.15000 -0.04473 0.07810 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.09000 -0.15000 -0.04527 -0.07778 0.15000"/>
+      <geom type="sphere" size="0.03" mass="1.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="thigh_l_b0" pos="-0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="thigh_l_b1" pos="0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="thigh_l_b2" pos="0.00000 0.09000 -0.15000" size="0.006"/>
+      <site name="thigh_l_t0" pos="-0.04527 -0.07778 0.15000" size="0.006"/>
+      <site name="thigh_l_t1" pos="0.09000 -0.00031 0.15000" size="0.006"/>
+      <site name="thigh_l_t2" pos="-0.04473 0.07810 0.15000" size="0.006"/>
+    </body>
+    <body name="foot_r" pos="-0.00000 -0.10000 0.15000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.09000 -0.15000 -0.04527 -0.07778 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 -0.04500 -0.15000 0.09000 -0.00031 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 -0.04500 -0.15000 -0.04473 0.07810 0.15000"/>
+      <geom type="sphere" size="0.03" mass="0.4" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <geom name="pad_foot_r" type="sphere" size="0.03" mass="0.05" contype="1" conaffinity="1" friction="1.2 0.01 0.001" pos="0.00000 0.09000 -0.15000"/>
+      <site name="foot_r_b0" pos="0.00000 0.09000 -0.15000" size="0.006"/>
+      <site name="foot_r_b1" pos="-0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="foot_r_b2" pos="0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="foot_r_t0" pos="-0.04473 0.07810 0.15000" size="0.006"/>
+      <site name="foot_r_t1" pos="-0.04527 -0.07778 0.15000" size="0.006"/>
+      <site name="foot_r_t2" pos="0.09000 -0.00031 0.15000" size="0.006"/>
+    </body>
+    <body name="shank_r" pos="0.00000 -0.10000 0.36000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 0.04500 -0.15000 0.04473 -0.07810 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.09000 -0.15000 0.04527 0.07778 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 0.04500 -0.15000 -0.09000 0.00031 0.15000"/>
+      <geom type="sphere" size="0.03" mass="1.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="shank_r_b0" pos="-0.07794 0.04500 -0.15000" size="0.006"/>
+      <site name="shank_r_b1" pos="-0.00000 -0.09000 -0.15000" size="0.006"/>
+      <site name="shank_r_b2" pos="0.07794 0.04500 -0.15000" size="0.006"/>
+      <site name="shank_r_t0" pos="-0.09000 0.00031 0.15000" size="0.006"/>
+      <site name="shank_r_t1" pos="0.04473 -0.07810 0.15000" size="0.006"/>
+      <site name="shank_r_t2" pos="0.04527 0.07778 0.15000" size="0.006"/>
+    </body>
+    <body name="thigh_r" pos="0.00000 -0.10000 0.57000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07794 -0.04500 -0.15000 0.09000 -0.00031 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07794 -0.04500 -0.15000 -0.04473 0.07810 0.15000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.09000 -0.15000 -0.04527 -0.07778 0.15000"/>
+      <geom type="sphere" size="0.03" mass="1.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="thigh_r_b0" pos="-0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="thigh_r_b1" pos="0.07794 -0.04500 -0.15000" size="0.006"/>
+      <site name="thigh_r_b2" pos="0.00000 0.09000 -0.15000" size="0.006"/>
+      <site name="thigh_r_t0" pos="-0.04527 -0.07778 0.15000" size="0.006"/>
+      <site name="thigh_r_t1" pos="0.09000 -0.00031 0.15000" size="0.006"/>
+      <site name="thigh_r_t2" pos="-0.04473 0.07810 0.15000" size="0.006"/>
+    </body>
+    <body name="pelvis" pos="-0.00000 -0.00000 0.67500">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.11000 -0.11000 -0.05533 -0.09507 0.11000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.09526 -0.05500 -0.11000 0.11000 -0.00038 0.11000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.09526 -0.05500 -0.11000 -0.05467 0.09545 0.11000"/>
+      <geom type="sphere" size="0.03" mass="3.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="pelvis_b0" pos="0.00000 0.11000 -0.11000" size="0.006"/>
+      <site name="pelvis_b1" pos="-0.09526 -0.05500 -0.11000" size="0.006"/>
+      <site name="pelvis_b2" pos="0.09526 -0.05500 -0.11000" size="0.006"/>
+      <site name="pelvis_t0" pos="-0.05467 0.09545 0.11000" size="0.006"/>
+      <site name="pelvis_t1" pos="-0.05533 -0.09507 0.11000" size="0.006"/>
+      <site name="pelvis_t2" pos="0.11000 -0.00038 0.11000" size="0.006"/>
+    </body>
+    <body name="torso" pos="0.00000 -0.00000 1.09500">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.11258 0.06500 -0.22000 0.06461 -0.11281 0.22000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.13000 -0.22000 0.06539 0.11236 0.22000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.11258 0.06500 -0.22000 -0.13000 0.00045 0.22000"/>
+      <geom type="sphere" size="0.03" mass="22.0" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="torso_b0" pos="-0.11258 0.06500 -0.22000" size="0.006"/>
+      <site name="torso_b1" pos="-0.00000 -0.13000 -0.22000" size="0.006"/>
+      <site name="torso_b2" pos="0.11258 0.06500 -0.22000" size="0.006"/>
+      <site name="torso_t0" pos="-0.13000 0.00045 0.22000" size="0.006"/>
+      <site name="torso_t1" pos="0.06461 -0.11281 0.22000" size="0.006"/>
+      <site name="torso_t2" pos="0.06539 0.11236 0.22000" size="0.006"/>
+    </body>
+    <body name="head" pos="-0.00000 -0.00000 1.45500">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.07000 -0.10000 -0.03521 -0.06050 0.10000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06062 -0.03500 -0.10000 0.07000 -0.00024 0.10000"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06062 -0.03500 -0.10000 -0.03479 0.06074 0.10000"/>
+      <geom type="sphere" size="0.03" mass="0.6" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="head_b0" pos="0.00000 0.07000 -0.10000" size="0.006"/>
+      <site name="head_b1" pos="-0.06062 -0.03500 -0.10000" size="0.006"/>
+      <site name="head_b2" pos="0.06062 -0.03500 -0.10000" size="0.006"/>
+      <site name="head_t0" pos="-0.03479 0.06074 0.10000" size="0.006"/>
+      <site name="head_t1" pos="-0.03521 -0.06050 0.10000" size="0.006"/>
+      <site name="head_t2" pos="0.07000 -0.00024 0.10000" size="0.006"/>
+    </body>
+    <body name="uarm_l" pos="-0.00000 0.20000 1.16500">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.07200 -0.12750 -0.03622 -0.06223 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06235 -0.03600 -0.12750 0.07200 -0.00025 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06235 -0.03600 -0.12750 -0.03578 0.06248 0.12750"/>
+      <geom type="sphere" size="0.03" mass="0.5" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="uarm_l_b0" pos="0.00000 0.07200 -0.12750" size="0.006"/>
+      <site name="uarm_l_b1" pos="-0.06235 -0.03600 -0.12750" size="0.006"/>
+      <site name="uarm_l_b2" pos="0.06235 -0.03600 -0.12750" size="0.006"/>
+      <site name="uarm_l_t0" pos="-0.03578 0.06248 0.12750" size="0.006"/>
+      <site name="uarm_l_t1" pos="-0.03622 -0.06223 0.12750" size="0.006"/>
+      <site name="uarm_l_t2" pos="0.07200 -0.00025 0.12750" size="0.006"/>
+    </body>
+    <body name="farm_l" pos="0.00000 0.20000 1.00000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06235 0.03600 -0.12750 0.03578 -0.06248 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.07200 -0.12750 0.03622 0.06223 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06235 0.03600 -0.12750 -0.07200 0.00025 0.12750"/>
+      <geom type="sphere" size="0.03" mass="0.3" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="farm_l_b0" pos="-0.06235 0.03600 -0.12750" size="0.006"/>
+      <site name="farm_l_b1" pos="-0.00000 -0.07200 -0.12750" size="0.006"/>
+      <site name="farm_l_b2" pos="0.06235 0.03600 -0.12750" size="0.006"/>
+      <site name="farm_l_t0" pos="-0.07200 0.00025 0.12750" size="0.006"/>
+      <site name="farm_l_t1" pos="0.03578 -0.06248 0.12750" size="0.006"/>
+      <site name="farm_l_t2" pos="0.03622 0.06223 0.12750" size="0.006"/>
+    </body>
+    <body name="uarm_r" pos="-0.00000 -0.20000 1.16500">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.07200 -0.12750 -0.03622 -0.06223 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06235 -0.03600 -0.12750 0.07200 -0.00025 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06235 -0.03600 -0.12750 -0.03578 0.06248 0.12750"/>
+      <geom type="sphere" size="0.03" mass="0.5" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="uarm_r_b0" pos="0.00000 0.07200 -0.12750" size="0.006"/>
+      <site name="uarm_r_b1" pos="-0.06235 -0.03600 -0.12750" size="0.006"/>
+      <site name="uarm_r_b2" pos="0.06235 -0.03600 -0.12750" size="0.006"/>
+      <site name="uarm_r_t0" pos="-0.03578 0.06248 0.12750" size="0.006"/>
+      <site name="uarm_r_t1" pos="-0.03622 -0.06223 0.12750" size="0.006"/>
+      <site name="uarm_r_t2" pos="0.07200 -0.00025 0.12750" size="0.006"/>
+    </body>
+    <body name="farm_r" pos="0.00000 -0.20000 1.00000">
+      <freejoint/>
+            <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06235 0.03600 -0.12750 0.03578 -0.06248 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.07200 -0.12750 0.03622 0.06223 0.12750"/>
+      <geom type="capsule" size="0.009" mass="0.001" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06235 0.03600 -0.12750 -0.07200 0.00025 0.12750"/>
+      <geom type="sphere" size="0.03" mass="0.3" contype="0" conaffinity="0" rgba="0.55 0.58 0.62 0.35"/>
+      <site name="farm_r_b0" pos="-0.06235 0.03600 -0.12750" size="0.006"/>
+      <site name="farm_r_b1" pos="-0.00000 -0.07200 -0.12750" size="0.006"/>
+      <site name="farm_r_b2" pos="0.06235 0.03600 -0.12750" size="0.006"/>
+      <site name="farm_r_t0" pos="-0.07200 0.00025 0.12750" size="0.006"/>
+      <site name="farm_r_t1" pos="0.03578 -0.06248 0.12750" size="0.006"/>
+      <site name="farm_r_t2" pos="0.03622 0.06223 0.12750" size="0.006"/>
+    </body>
+  </worldbody>
+  <tendon>
+    <spatial name="t0" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091482" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t0"/>
+      <site site="shank_l_b0"/>
+    </spatial>
+    <spatial name="t1" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218475" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t0"/>
+      <site site="shank_l_t0"/>
+    </spatial>
+    <spatial name="t2" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185853" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t0"/>
+      <site site="shank_l_b1"/>
+    </spatial>
+    <spatial name="t3" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="foot_l_b0"/>
+      <site site="shank_l_b0"/>
+    </spatial>
+    <spatial name="t4" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091483" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t1"/>
+      <site site="shank_l_b1"/>
+    </spatial>
+    <spatial name="t5" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t1"/>
+      <site site="shank_l_t1"/>
+    </spatial>
+    <spatial name="t6" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185846" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t1"/>
+      <site site="shank_l_b2"/>
+    </spatial>
+    <spatial name="t7" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="foot_l_b1"/>
+      <site site="shank_l_b1"/>
+    </spatial>
+    <spatial name="t8" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091481" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t2"/>
+      <site site="shank_l_b2"/>
+    </spatial>
+    <spatial name="t9" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218471" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t2"/>
+      <site site="shank_l_t2"/>
+    </spatial>
+    <spatial name="t10" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185849" rgba="0.95 0.97 1 1">
+      <site site="foot_l_t2"/>
+      <site site="shank_l_b0"/>
+    </spatial>
+    <spatial name="t11" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="foot_l_b2"/>
+      <site site="shank_l_b2"/>
+    </spatial>
+    <spatial name="t12" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091481" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t0"/>
+      <site site="thigh_l_b0"/>
+    </spatial>
+    <spatial name="t13" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218471" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t0"/>
+      <site site="thigh_l_t0"/>
+    </spatial>
+    <spatial name="t14" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185849" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t0"/>
+      <site site="thigh_l_b1"/>
+    </spatial>
+    <spatial name="t15" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="shank_l_b0"/>
+      <site site="thigh_l_b0"/>
+    </spatial>
+    <spatial name="t16" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091482" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t1"/>
+      <site site="thigh_l_b1"/>
+    </spatial>
+    <spatial name="t17" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218475" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t1"/>
+      <site site="thigh_l_t1"/>
+    </spatial>
+    <spatial name="t18" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185853" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t1"/>
+      <site site="thigh_l_b2"/>
+    </spatial>
+    <spatial name="t19" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="shank_l_b1"/>
+      <site site="thigh_l_b1"/>
+    </spatial>
+    <spatial name="t20" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091483" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t2"/>
+      <site site="thigh_l_b2"/>
+    </spatial>
+    <spatial name="t21" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t2"/>
+      <site site="thigh_l_t2"/>
+    </spatial>
+    <spatial name="t22" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185846" rgba="0.95 0.97 1 1">
+      <site site="shank_l_t2"/>
+      <site site="thigh_l_b0"/>
+    </spatial>
+    <spatial name="t23" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="shank_l_b2"/>
+      <site site="thigh_l_b2"/>
+    </spatial>
+    <spatial name="t24" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.173793" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t0"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t25" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.088367" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t0"/>
+      <site site="pelvis_t0"/>
+    </spatial>
+    <spatial name="t26" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170241" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t0"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t27" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.163565" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_b0"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t28" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.276837" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t1"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t29" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.241550" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t1"/>
+      <site site="pelvis_t1"/>
+    </spatial>
+    <spatial name="t30" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.209047" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t1"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t31" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.241243" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_b1"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t32" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.302982" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t2"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t33" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.234993" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t2"/>
+      <site site="pelvis_t2"/>
+    </spatial>
+    <spatial name="t34" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.165110" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_t2"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t35" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.290207" rgba="0.95 0.97 1 1">
+      <site site="thigh_l_b2"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t36" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091482" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t0"/>
+      <site site="shank_r_b0"/>
+    </spatial>
+    <spatial name="t37" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218475" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t0"/>
+      <site site="shank_r_t0"/>
+    </spatial>
+    <spatial name="t38" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185853" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t0"/>
+      <site site="shank_r_b1"/>
+    </spatial>
+    <spatial name="t39" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="foot_r_b0"/>
+      <site site="shank_r_b0"/>
+    </spatial>
+    <spatial name="t40" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091483" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t1"/>
+      <site site="shank_r_b1"/>
+    </spatial>
+    <spatial name="t41" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t1"/>
+      <site site="shank_r_t1"/>
+    </spatial>
+    <spatial name="t42" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185846" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t1"/>
+      <site site="shank_r_b2"/>
+    </spatial>
+    <spatial name="t43" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="foot_r_b1"/>
+      <site site="shank_r_b1"/>
+    </spatial>
+    <spatial name="t44" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091481" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t2"/>
+      <site site="shank_r_b2"/>
+    </spatial>
+    <spatial name="t45" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218471" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t2"/>
+      <site site="shank_r_t2"/>
+    </spatial>
+    <spatial name="t46" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185849" rgba="0.95 0.97 1 1">
+      <site site="foot_r_t2"/>
+      <site site="shank_r_b0"/>
+    </spatial>
+    <spatial name="t47" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="foot_r_b2"/>
+      <site site="shank_r_b2"/>
+    </spatial>
+    <spatial name="t48" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091481" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t0"/>
+      <site site="thigh_r_b0"/>
+    </spatial>
+    <spatial name="t49" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218471" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t0"/>
+      <site site="thigh_r_t0"/>
+    </spatial>
+    <spatial name="t50" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185849" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t0"/>
+      <site site="thigh_r_b1"/>
+    </spatial>
+    <spatial name="t51" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="shank_r_b0"/>
+      <site site="thigh_r_b0"/>
+    </spatial>
+    <spatial name="t52" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091482" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t1"/>
+      <site site="thigh_r_b1"/>
+    </spatial>
+    <spatial name="t53" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218475" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t1"/>
+      <site site="thigh_r_t1"/>
+    </spatial>
+    <spatial name="t54" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185853" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t1"/>
+      <site site="thigh_r_b2"/>
+    </spatial>
+    <spatial name="t55" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="shank_r_b1"/>
+      <site site="thigh_r_b1"/>
+    </spatial>
+    <spatial name="t56" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.091483" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t2"/>
+      <site site="thigh_r_b2"/>
+    </spatial>
+    <spatial name="t57" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218473" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t2"/>
+      <site site="thigh_r_t2"/>
+    </spatial>
+    <spatial name="t58" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.185846" rgba="0.95 0.97 1 1">
+      <site site="shank_r_t2"/>
+      <site site="thigh_r_b0"/>
+    </spatial>
+    <spatial name="t59" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.218472" rgba="0.95 0.97 1 1">
+      <site site="shank_r_b2"/>
+      <site site="thigh_r_b2"/>
+    </spatial>
+    <spatial name="t60" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.319987" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t0"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t61" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.271012" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t0"/>
+      <site site="pelvis_t0"/>
+    </spatial>
+    <spatial name="t62" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.193958" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t0"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t63" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.293520" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_b0"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t64" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.235763" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t1"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t65" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.149290" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t1"/>
+      <site site="pelvis_t1"/>
+    </spatial>
+    <spatial name="t66" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.151572" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t1"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t67" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.233153" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_b1"/>
+      <site site="pelvis_b1"/>
+    </spatial>
+    <spatial name="t68" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.201466" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t2"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t69" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.159202" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t2"/>
+      <site site="pelvis_t2"/>
+    </spatial>
+    <spatial name="t70" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.198383" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_t2"/>
+      <site site="pelvis_b0"/>
+    </spatial>
+    <spatial name="t71" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.169233" rgba="0.95 0.97 1 1">
+      <site site="thigh_r_b2"/>
+      <site site="pelvis_b2"/>
+    </spatial>
+    <spatial name="t72" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.101269" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t0"/>
+      <site site="torso_b0"/>
+    </spatial>
+    <spatial name="t73" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.533691" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t0"/>
+      <site site="torso_t0"/>
+    </spatial>
+    <spatial name="t74" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.238830" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t0"/>
+      <site site="torso_b1"/>
+    </spatial>
+    <spatial name="t75" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.322865" rgba="0.95 0.97 1 1">
+      <site site="pelvis_b0"/>
+      <site site="torso_b0"/>
+    </spatial>
+    <spatial name="t76" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.101272" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t1"/>
+      <site site="torso_b1"/>
+    </spatial>
+    <spatial name="t77" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.533691" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t1"/>
+      <site site="torso_t1"/>
+    </spatial>
+    <spatial name="t78" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.238830" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t1"/>
+      <site site="torso_b2"/>
+    </spatial>
+    <spatial name="t79" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.322866" rgba="0.95 0.97 1 1">
+      <site site="pelvis_b1"/>
+      <site site="torso_b1"/>
+    </spatial>
+    <spatial name="t80" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.101271" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t2"/>
+      <site site="torso_b2"/>
+    </spatial>
+    <spatial name="t81" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.533691" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t2"/>
+      <site site="torso_t2"/>
+    </spatial>
+    <spatial name="t82" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.238830" rgba="0.95 0.97 1 1">
+      <site site="pelvis_t2"/>
+      <site site="torso_b0"/>
+    </spatial>
+    <spatial name="t83" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.322866" rgba="0.95 0.97 1 1">
+      <site site="pelvis_b2"/>
+      <site site="torso_b2"/>
+    </spatial>
+    <spatial name="t84" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.142765" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="head_b0"/>
+    </spatial>
+    <spatial name="t85" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.255141" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="head_t0"/>
+    </spatial>
+    <spatial name="t86" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.077580" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="head_b1"/>
+    </spatial>
+    <spatial name="t87" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.483051" rgba="0.95 0.97 1 1">
+      <site site="torso_b0"/>
+      <site site="head_b0"/>
+    </spatial>
+    <spatial name="t88" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.142764" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="head_b1"/>
+    </spatial>
+    <spatial name="t89" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.255142" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="head_t1"/>
+    </spatial>
+    <spatial name="t90" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.077580" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="head_b2"/>
+    </spatial>
+    <spatial name="t91" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.483052" rgba="0.95 0.97 1 1">
+      <site site="torso_b1"/>
+      <site site="head_b1"/>
+    </spatial>
+    <spatial name="t92" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.142767" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="head_b2"/>
+    </spatial>
+    <spatial name="t93" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.255141" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="head_t2"/>
+    </spatial>
+    <spatial name="t94" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.077580" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="head_b0"/>
+    </spatial>
+    <spatial name="t95" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.483052" rgba="0.95 0.97 1 1">
+      <site site="torso_b2"/>
+      <site site="head_b2"/>
+    </spatial>
+    <spatial name="t96" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.269362" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_l_t0"/>
+    </spatial>
+    <spatial name="t97" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.399446" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_l_b0"/>
+    </spatial>
+    <spatial name="t98" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.157803" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_l_t1"/>
+    </spatial>
+    <spatial name="t99" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.458191" rgba="0.95 0.97 1 1">
+      <site site="torso_b0"/>
+      <site site="uarm_l_t0"/>
+    </spatial>
+    <spatial name="t100" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.261041" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_l_t1"/>
+    </spatial>
+    <spatial name="t101" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.402006" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_l_b1"/>
+    </spatial>
+    <spatial name="t102" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.303456" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_l_t2"/>
+    </spatial>
+    <spatial name="t103" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.487312" rgba="0.95 0.97 1 1">
+      <site site="torso_b1"/>
+      <site site="uarm_l_t1"/>
+    </spatial>
+    <spatial name="t104" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.080482" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_l_t2"/>
+    </spatial>
+    <spatial name="t105" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.272280" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_l_b2"/>
+    </spatial>
+    <spatial name="t106" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.172422" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_l_t0"/>
+    </spatial>
+    <spatial name="t107" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.430580" rgba="0.95 0.97 1 1">
+      <site site="torso_b2"/>
+      <site site="uarm_l_t2"/>
+    </spatial>
+    <spatial name="t108" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125765" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b0"/>
+      <site site="farm_l_t0"/>
+    </spatial>
+    <spatial name="t109" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170024" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b0"/>
+      <site site="farm_l_b0"/>
+    </spatial>
+    <spatial name="t110" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155726" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b0"/>
+      <site site="farm_l_t1"/>
+    </spatial>
+    <spatial name="t111" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170026" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_t0"/>
+      <site site="farm_l_t0"/>
+    </spatial>
+    <spatial name="t112" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125760" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b1"/>
+      <site site="farm_l_t1"/>
+    </spatial>
+    <spatial name="t113" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170024" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b1"/>
+      <site site="farm_l_b1"/>
+    </spatial>
+    <spatial name="t114" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155726" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b1"/>
+      <site site="farm_l_t2"/>
+    </spatial>
+    <spatial name="t115" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_t1"/>
+      <site site="farm_l_t1"/>
+    </spatial>
+    <spatial name="t116" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125764" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b2"/>
+      <site site="farm_l_t2"/>
+    </spatial>
+    <spatial name="t117" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b2"/>
+      <site site="farm_l_b2"/>
+    </spatial>
+    <spatial name="t118" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155723" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_b2"/>
+      <site site="farm_l_t0"/>
+    </spatial>
+    <spatial name="t119" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_l_t2"/>
+      <site site="farm_l_t2"/>
+    </spatial>
+    <spatial name="t120" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.158580" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_r_t0"/>
+    </spatial>
+    <spatial name="t121" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.322273" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_r_b0"/>
+    </spatial>
+    <spatial name="t122" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.269824" rgba="0.95 0.97 1 1">
+      <site site="torso_t0"/>
+      <site site="uarm_r_t1"/>
+    </spatial>
+    <spatial name="t123" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.460339" rgba="0.95 0.97 1 1">
+      <site site="torso_b0"/>
+      <site site="uarm_r_t0"/>
+    </spatial>
+    <spatial name="t124" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.171657" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_r_t1"/>
+    </spatial>
+    <spatial name="t125" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.319091" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_r_b1"/>
+    </spatial>
+    <spatial name="t126" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.080590" rgba="0.95 0.97 1 1">
+      <site site="torso_t1"/>
+      <site site="uarm_r_t2"/>
+    </spatial>
+    <spatial name="t127" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.429435" rgba="0.95 0.97 1 1">
+      <site site="torso_b1"/>
+      <site site="uarm_r_t1"/>
+    </spatial>
+    <spatial name="t128" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.303488" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_r_t2"/>
+    </spatial>
+    <spatial name="t129" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.435388" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_r_b2"/>
+    </spatial>
+    <spatial name="t130" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.260521" rgba="0.95 0.97 1 1">
+      <site site="torso_t2"/>
+      <site site="uarm_r_t0"/>
+    </spatial>
+    <spatial name="t131" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.486297" rgba="0.95 0.97 1 1">
+      <site site="torso_b2"/>
+      <site site="uarm_r_t2"/>
+    </spatial>
+    <spatial name="t132" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125765" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b0"/>
+      <site site="farm_r_t0"/>
+    </spatial>
+    <spatial name="t133" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170024" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b0"/>
+      <site site="farm_r_b0"/>
+    </spatial>
+    <spatial name="t134" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155726" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b0"/>
+      <site site="farm_r_t1"/>
+    </spatial>
+    <spatial name="t135" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170026" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_t0"/>
+      <site site="farm_r_t0"/>
+    </spatial>
+    <spatial name="t136" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125760" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b1"/>
+      <site site="farm_r_t1"/>
+    </spatial>
+    <spatial name="t137" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170024" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b1"/>
+      <site site="farm_r_b1"/>
+    </spatial>
+    <spatial name="t138" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155726" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b1"/>
+      <site site="farm_r_t2"/>
+    </spatial>
+    <spatial name="t139" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_t1"/>
+      <site site="farm_r_t1"/>
+    </spatial>
+    <spatial name="t140" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.125764" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b2"/>
+      <site site="farm_r_t2"/>
+    </spatial>
+    <spatial name="t141" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b2"/>
+      <site site="farm_r_b2"/>
+    </spatial>
+    <spatial name="t142" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.155723" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_b2"/>
+      <site site="farm_r_t0"/>
+    </spatial>
+    <spatial name="t143" width="0.004" stiffness="40000.0" damping="4.00" springlength="0 0.170025" rgba="0.95 0.97 1 1">
+      <site site="uarm_r_t2"/>
+      <site site="farm_r_t2"/>
+    </spatial>
+  </tendon>
+  <actuator>
+    <motor name="a0" tendon="t0" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a1" tendon="t1" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a2" tendon="t2" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a3" tendon="t3" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a4" tendon="t4" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a5" tendon="t5" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a6" tendon="t6" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a7" tendon="t7" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a8" tendon="t8" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a9" tendon="t9" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a10" tendon="t10" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a11" tendon="t11" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a12" tendon="t12" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a13" tendon="t13" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a14" tendon="t14" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a15" tendon="t15" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a16" tendon="t16" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a17" tendon="t17" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a18" tendon="t18" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a19" tendon="t19" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a20" tendon="t20" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a21" tendon="t21" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a22" tendon="t22" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a23" tendon="t23" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a24" tendon="t24" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a25" tendon="t25" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a26" tendon="t26" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a27" tendon="t27" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a28" tendon="t28" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a29" tendon="t29" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a30" tendon="t30" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a31" tendon="t31" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a32" tendon="t32" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a33" tendon="t33" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a34" tendon="t34" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a35" tendon="t35" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a36" tendon="t36" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a37" tendon="t37" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a38" tendon="t38" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a39" tendon="t39" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a40" tendon="t40" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a41" tendon="t41" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a42" tendon="t42" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a43" tendon="t43" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a44" tendon="t44" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a45" tendon="t45" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a46" tendon="t46" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a47" tendon="t47" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a48" tendon="t48" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a49" tendon="t49" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a50" tendon="t50" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a51" tendon="t51" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a52" tendon="t52" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a53" tendon="t53" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a54" tendon="t54" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a55" tendon="t55" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a56" tendon="t56" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a57" tendon="t57" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a58" tendon="t58" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a59" tendon="t59" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a60" tendon="t60" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a61" tendon="t61" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a62" tendon="t62" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a63" tendon="t63" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a64" tendon="t64" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a65" tendon="t65" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a66" tendon="t66" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a67" tendon="t67" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a68" tendon="t68" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a69" tendon="t69" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a70" tendon="t70" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a71" tendon="t71" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a72" tendon="t72" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a73" tendon="t73" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a74" tendon="t74" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a75" tendon="t75" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a76" tendon="t76" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a77" tendon="t77" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a78" tendon="t78" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a79" tendon="t79" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a80" tendon="t80" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a81" tendon="t81" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a82" tendon="t82" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a83" tendon="t83" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a84" tendon="t84" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a85" tendon="t85" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a86" tendon="t86" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a87" tendon="t87" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a88" tendon="t88" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a89" tendon="t89" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a90" tendon="t90" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a91" tendon="t91" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a92" tendon="t92" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a93" tendon="t93" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a94" tendon="t94" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a95" tendon="t95" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a96" tendon="t96" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a97" tendon="t97" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a98" tendon="t98" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a99" tendon="t99" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a100" tendon="t100" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a101" tendon="t101" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a102" tendon="t102" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a103" tendon="t103" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a104" tendon="t104" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a105" tendon="t105" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a106" tendon="t106" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a107" tendon="t107" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a108" tendon="t108" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a109" tendon="t109" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a110" tendon="t110" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a111" tendon="t111" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a112" tendon="t112" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a113" tendon="t113" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a114" tendon="t114" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a115" tendon="t115" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a116" tendon="t116" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a117" tendon="t117" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a118" tendon="t118" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a119" tendon="t119" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a120" tendon="t120" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a121" tendon="t121" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a122" tendon="t122" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a123" tendon="t123" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a124" tendon="t124" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a125" tendon="t125" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a126" tendon="t126" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a127" tendon="t127" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a128" tendon="t128" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a129" tendon="t129" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a130" tendon="t130" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a131" tendon="t131" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a132" tendon="t132" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a133" tendon="t133" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a134" tendon="t134" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a135" tendon="t135" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a136" tendon="t136" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a137" tendon="t137" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a138" tendon="t138" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a139" tendon="t139" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a140" tendon="t140" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a141" tendon="t141" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a142" tendon="t142" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+    <motor name="a143" tendon="t143" gear="-1500.0" ctrlrange="0 1" ctrllimited="true"/>
+  </actuator>
+</mujoco>

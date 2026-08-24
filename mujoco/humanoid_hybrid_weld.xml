@@ -1,0 +1,294 @@
+<mujoco model="Hybrid Tensegrity Humanoid">
+  <compiler angle="radian" autolimits="true" meshdir="assets"/>
+  <option timestep="0.004" integrator="implicitfast" solver="Newton" iterations="60"/>
+  <visual><global offwidth="1600" offheight="1200"/><map force="0.005"/></visual>
+  <asset>
+    <mesh name="ak70" file="ak70_10.stl"/>
+    <mesh name="ak60" file="ak60_6.stl"/>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.88 0.89 0.90" rgb2="0.96 0.96 0.97" width="512" height="512"/>
+    <material name="grid" texture="grid" texrepeat="10 10"/>
+  </asset>
+  <default>
+    <joint damping="1.5" armature="0.02" limited="true"/>
+    <motor ctrllimited="true" ctrlrange="-1 1"/>
+    <tendon rgba="0.95 0.97 1 1" width="0.0032"/>
+  </default>
+  <worldbody>
+    <light pos="1.5 -1.5 3" dir="-0.35 0.35 -1" directional="true"/>
+    <light pos="-2 1.5 2.5" dir="0.5 -0.4 -1" directional="true" diffuse="0.35 0.35 0.35"/>
+    <geom name="floor" type="plane" size="8 8 0.1" material="grid" contype="1" conaffinity="1" friction="1.2 0.01 0.001"/>
+    <body name="pelvis" pos="0 0 0.93900">
+      <freejoint name="root"/>
+      <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.16000 -0.08000 -0.08048 -0.13828 0.08000"/>
+      <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.13856 -0.08000 -0.08000 0.16000 -0.00056 0.08000"/>
+      <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.13856 -0.08000 -0.08000 -0.07952 0.13884 0.08000"/>
+      <site name="pelv_b0" pos="0.00000 0.16000 -0.08000" size="0.006"/>
+      <site name="pelv_t0" pos="-0.07952 0.13884 0.08000" size="0.006"/>
+      <site name="pelv_b1" pos="-0.13856 -0.08000 -0.08000" size="0.006"/>
+      <site name="pelv_t1" pos="-0.08048 -0.13828 0.08000" size="0.006"/>
+      <site name="pelv_b2" pos="0.13856 -0.08000 -0.08000" size="0.006"/>
+      <site name="pelv_t2" pos="0.16000 -0.00056 0.08000" size="0.006"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="0.17754 0.10250 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="0.00000 0.20500 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="-0.17754 0.10250 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="-0.17754 -0.10250 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="-0.00000 -0.20500 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="0.17754 -0.10250 -0.06000" xyaxes="0 0 1 0 1 0"/>
+      <inertial pos="-0.01911 0.00000 -0.00395" mass="9.4200" fullinertia="0.095591 0.098451 0.154459 -0.000000 0.006711 0.000000"/>
+      <site name="hip_anchor_l" pos="0.00000 0.10000 -0.05000" size="0.007"/>
+      <site name="hip_anchor_r" pos="0.00000 -0.10000 -0.05000" size="0.007"/>
+      <body name="torso" pos="0 0 0.30000">
+        <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.11258 0.06500 -0.21000 0.06461 -0.11281 0.21000"/>
+        <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 -0.13000 -0.21000 0.06539 0.11236 0.21000"/>
+        <geom type="capsule" size="0.009" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.11258 0.06500 -0.21000 -0.13000 0.00045 0.21000"/>
+        <site name="torso_b0" pos="-0.11258 0.06500 -0.21000" size="0.006"/>
+        <site name="torso_t0" pos="-0.13000 0.00045 0.21000" size="0.006"/>
+        <site name="torso_b1" pos="-0.00000 -0.13000 -0.21000" size="0.006"/>
+        <site name="torso_t1" pos="0.06461 -0.11281 0.21000" size="0.006"/>
+        <site name="torso_b2" pos="0.11258 0.06500 -0.21000" size="0.006"/>
+        <site name="torso_t2" pos="0.06539 0.11236 0.21000" size="0.006"/>
+        <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="0.00000 0.16000 0.18000"/>
+        <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="0.00000 -0.16000 0.18000"/>
+        <inertial pos="0.00000 0.00000 0.03882" mass="1.5300" fullinertia="0.044614 0.036166 0.028728 0.000000 0.000000 0.000000"/>
+        <body name="head" pos="0 0 0.35000">
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 0.07000 -0.09000 -0.03521 -0.06050 0.09000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.06062 -0.03500 -0.09000 0.07000 -0.00024 0.09000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.06062 -0.03500 -0.09000 -0.03479 0.06074 0.09000"/>
+          <inertial pos="0.00000 0.00000 0.00000" mass="0.5000" fullinertia="0.002575 0.002575 0.002450 0.000000 0.000000 0.000000"/>
+        </body>
+        <body name="upper_arm_l" pos="0.00000 0.19000 0.21000">
+          <joint name="shoulder_pitch_l" type="hinge" axis="0 -1 0" range="-2.5 1.5"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 -0.04500 0.00000 -0.02264 0.03889 -0.26000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.03897 0.02250 0.00000 0.04500 0.00016 -0.26000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.03897 0.02250 0.00000 -0.02236 -0.03905 -0.26000"/>
+          <site name="ua_l_b0" pos="0.00000 -0.04500 0.00000" size="0.006"/>
+          <site name="ua_l_t0" pos="-0.02236 -0.03905 -0.26000" size="0.006"/>
+          <site name="ua_l_b1" pos="-0.03897 0.02250 0.00000" size="0.006"/>
+          <site name="ua_l_t1" pos="-0.02264 0.03889 -0.26000" size="0.006"/>
+          <site name="ua_l_b2" pos="0.03897 0.02250 0.00000" size="0.006"/>
+          <site name="ua_l_t2" pos="0.04500 0.00016 -0.26000" size="0.006"/>
+          <inertial pos="0.00000 0.00000 -0.13000" mass="0.2500" fullinertia="0.001661 0.001661 0.000506 0.000000 0.000000 0.000000"/>
+          <body name="forearm_l" pos="0 0 -0.26000">
+            <joint name="elbow_l" type="hinge" axis="0 -1 0" range="-2.4 0.05"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.03291 -0.01900 0.00000 0.01889 0.03298 -0.23400"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 0.03800 0.00000 0.01911 -0.03284 -0.23400"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.03291 -0.01900 0.00000 -0.03800 -0.00013 -0.23400"/>
+            <inertial pos="0.00000 0.00000 -0.11700" mass="0.2000" fullinertia="0.001057 0.001057 0.000289 0.000000 0.000000 0.000000"/>
+          </body>
+        </body>
+        <body name="upper_arm_r" pos="0.00000 -0.19000 0.21000">
+          <joint name="shoulder_pitch_r" type="hinge" axis="0 -1 0" range="-2.5 1.5"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.00000 -0.04500 0.00000 -0.02264 0.03889 -0.26000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.03897 0.02250 0.00000 0.04500 0.00016 -0.26000"/>
+          <geom type="capsule" size="0.006" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.03897 0.02250 0.00000 -0.02236 -0.03905 -0.26000"/>
+          <site name="ua_r_b0" pos="0.00000 -0.04500 0.00000" size="0.006"/>
+          <site name="ua_r_t0" pos="-0.02236 -0.03905 -0.26000" size="0.006"/>
+          <site name="ua_r_b1" pos="-0.03897 0.02250 0.00000" size="0.006"/>
+          <site name="ua_r_t1" pos="-0.02264 0.03889 -0.26000" size="0.006"/>
+          <site name="ua_r_b2" pos="0.03897 0.02250 0.00000" size="0.006"/>
+          <site name="ua_r_t2" pos="0.04500 0.00016 -0.26000" size="0.006"/>
+          <inertial pos="0.00000 0.00000 -0.13000" mass="0.2500" fullinertia="0.001661 0.001661 0.000506 0.000000 0.000000 0.000000"/>
+          <body name="forearm_r" pos="0 0 -0.26000">
+            <joint name="elbow_r" type="hinge" axis="0 -1 0" range="-2.4 0.05"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.03291 -0.01900 0.00000 0.01889 0.03298 -0.23400"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.00000 0.03800 0.00000 0.01911 -0.03284 -0.23400"/>
+            <geom type="capsule" size="0.005" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.03291 -0.01900 0.00000 -0.03800 -0.00013 -0.23400"/>
+            <inertial pos="0.00000 0.00000 -0.11700" mass="0.2000" fullinertia="0.001057 0.001057 0.000289 0.000000 0.000000 0.000000"/>
+          </body>
+        </body>
+      </body>
+      <body name="thigh_l" pos="0.00000 0.10000 -0.05000">
+        <joint name="hip_yaw_l" type="hinge" axis="0 0 1" range="-0.8 0.8"/>
+        <joint name="hip_roll_l" type="hinge" axis="1 0 0" range="-0.6 0.6"/>
+        <joint name="hip_pitch_l" type="hinge" axis="0 -1 0" range="-1.8 1.0"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.13716 0.07500 -0.37575 -0.03544 -0.06482 -0.01294"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07615 -0.03750 -0.39802 0.07045 -0.00026 0.02572"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.19817 -0.03750 -0.35348 -0.03501 0.06508 -0.01278"/>
+        <site name="th_l_b0" pos="0.13716 0.07500 -0.37575" size="0.006"/>
+        <site name="th_l_t0" pos="-0.03501 0.06508 -0.01278" size="0.006"/>
+        <site name="th_l_b1" pos="0.07615 -0.03750 -0.39802" size="0.006"/>
+        <site name="th_l_t1" pos="-0.03544 -0.06482 -0.01294" size="0.006"/>
+        <site name="th_l_b2" pos="0.19817 -0.03750 -0.35348" size="0.006"/>
+        <site name="th_l_t2" pos="0.07045 -0.00026 0.02572" size="0.006"/>
+        <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="0.10665 0.01875 -0.33689" xyaxes="0 0 1 0 1 0"/>
+        <inertial pos="0.08799 0.00956 -0.26384" mass="1.0200" fullinertia="0.013822 0.014102 0.003272 -0.000182 0.001446 0.000712"/>
+        <body name="shank_l" pos="0.13716 0.00000 -0.37575">
+          <joint name="knee_l" type="hinge" axis="0 -1 0" range="-0.1 2.2"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.19865 0.03750 -0.38233 0.03529 -0.06508 -0.01200"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.13716 -0.07500 -0.40325 0.03572 0.06482 -0.01215"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07567 0.03750 -0.42416 -0.07100 0.00026 0.02415"/>
+          <site name="sh_l_b0" pos="-0.19865 0.03750 -0.38233" size="0.006"/>
+          <site name="sh_l_t0" pos="-0.07100 0.00026 0.02415" size="0.006"/>
+          <site name="sh_l_b1" pos="-0.13716 -0.07500 -0.40325" size="0.006"/>
+          <site name="sh_l_t1" pos="0.03529 -0.06508 -0.01200" size="0.006"/>
+          <site name="sh_l_b2" pos="-0.07567 0.03750 -0.42416" size="0.006"/>
+          <site name="sh_l_t2" pos="0.03572 0.06482 -0.01215" size="0.006"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.19865 0.03750 -0.32233"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.13716 -0.07500 -0.34325"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.07567 0.03750 -0.36416"/>
+          <inertial pos="-0.10270 -0.00000 -0.26517" mass="0.9950" fullinertia="0.015614 0.016640 0.006622 0.000000 -0.002226 -0.000000"/>
+        <body name="foot_l" pos="-0.13716 0.00000 -0.46925">
+      
+      <geom name="pad_l0" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="-0.09000 0.00000 -0.02200"/>
+      <geom name="pad_l1" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="0.12000 0.05000 -0.02200"/>
+      <geom name="pad_l2" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="0.12000 -0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.09000 0.00000 -0.02200 0.12000 0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 0.05000 -0.02200 0.12000 -0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 -0.05000 -0.02200 -0.09000 0.00000 -0.02200"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.09000 0.00000 -0.02200 -0.03750 -0.06495 0.12100"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 0.05000 -0.02200 0.07500 -0.00000 0.12100"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 -0.05000 -0.02200 -0.03750 0.06495 0.12100"/>
+      <site name="mast_l0" pos="-0.03750 0.06495 0.12100" size="0.006"/>
+      <site name="plate_l0" pos="-0.09000 0.00000 -0.02200" size="0.005"/>
+      <site name="mast_l1" pos="-0.03750 -0.06495 0.12100" size="0.006"/>
+      <site name="plate_l1" pos="0.12000 0.05000 -0.02200" size="0.005"/>
+      <site name="mast_l2" pos="0.07500 -0.00000 0.12100" size="0.006"/>
+      <site name="plate_l2" pos="0.12000 -0.05000 -0.02200" size="0.005"/>
+      <inertial pos="0.02000 0.00000 0.03000" mass="0.4500" fullinertia="0.002843 0.002843 0.003645 0.000000 0.000000 0.000000"/>
+    </body>
+      </body>
+      </body>
+      <body name="thigh_r" pos="0.00000 -0.10000 -0.05000">
+        <joint name="hip_yaw_r" type="hinge" axis="0 0 1" range="-0.8 0.8"/>
+        <joint name="hip_roll_r" type="hinge" axis="1 0 0" range="-0.6 0.6"/>
+        <joint name="hip_pitch_r" type="hinge" axis="0 -1 0" range="-1.8 1.0"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.13716 0.07500 -0.37575 -0.03544 -0.06482 -0.01294"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.07615 -0.03750 -0.39802 0.07045 -0.00026 0.02572"/>
+        <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.19817 -0.03750 -0.35348 -0.03501 0.06508 -0.01278"/>
+        <site name="th_r_b0" pos="0.13716 0.07500 -0.37575" size="0.006"/>
+        <site name="th_r_t0" pos="-0.03501 0.06508 -0.01278" size="0.006"/>
+        <site name="th_r_b1" pos="0.07615 -0.03750 -0.39802" size="0.006"/>
+        <site name="th_r_t1" pos="-0.03544 -0.06482 -0.01294" size="0.006"/>
+        <site name="th_r_b2" pos="0.19817 -0.03750 -0.35348" size="0.006"/>
+        <site name="th_r_t2" pos="0.07045 -0.00026 0.02572" size="0.006"/>
+        <geom type="mesh" mesh="ak70" mass="0" contype="0" conaffinity="0" rgba="0.32 0.33 0.36 1" pos="0.10665 0.01875 -0.33689" xyaxes="0 0 1 0 1 0"/>
+        <inertial pos="0.08799 0.00956 -0.26384" mass="1.0200" fullinertia="0.013822 0.014102 0.003272 -0.000182 0.001446 0.000712"/>
+        <body name="shank_r" pos="0.13716 0.00000 -0.37575">
+          <joint name="knee_r" type="hinge" axis="0 -1 0" range="-0.1 2.2"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.19865 0.03750 -0.38233 0.03529 -0.06508 -0.01200"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.13716 -0.07500 -0.40325 0.03572 0.06482 -0.01215"/>
+          <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.07567 0.03750 -0.42416 -0.07100 0.00026 0.02415"/>
+          <site name="sh_r_b0" pos="-0.19865 0.03750 -0.38233" size="0.006"/>
+          <site name="sh_r_t0" pos="-0.07100 0.00026 0.02415" size="0.006"/>
+          <site name="sh_r_b1" pos="-0.13716 -0.07500 -0.40325" size="0.006"/>
+          <site name="sh_r_t1" pos="0.03529 -0.06508 -0.01200" size="0.006"/>
+          <site name="sh_r_b2" pos="-0.07567 0.03750 -0.42416" size="0.006"/>
+          <site name="sh_r_t2" pos="0.03572 0.06482 -0.01215" size="0.006"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.19865 0.03750 -0.32233"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.13716 -0.07500 -0.34325"/>
+          <geom type="cylinder" size="0.022 0.024" mass="0" contype="0" conaffinity="0" rgba="0.20 0.21 0.24 1" pos="-0.07567 0.03750 -0.36416"/>
+          <inertial pos="-0.10270 -0.00000 -0.26517" mass="0.9950" fullinertia="0.015614 0.016640 0.006622 0.000000 -0.002226 -0.000000"/>
+        <body name="foot_r" pos="-0.13716 0.00000 -0.46925">
+      
+      <geom name="pad_r0" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="-0.09000 0.00000 -0.02200"/>
+      <geom name="pad_r1" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="0.12000 0.05000 -0.02200"/>
+      <geom name="pad_r2" type="sphere" size="0.022" mass="0" contype="1" conaffinity="1" friction="1.2 0.01 0.001" rgba="0.75 0.75 0.78 1" pos="0.12000 -0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.09000 0.00000 -0.02200 0.12000 0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 0.05000 -0.02200 0.12000 -0.05000 -0.02200"/>
+      <geom type="capsule" size="0.008" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 -0.05000 -0.02200 -0.09000 0.00000 -0.02200"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="-0.09000 0.00000 -0.02200 -0.03750 -0.06495 0.12100"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 0.05000 -0.02200 0.07500 -0.00000 0.12100"/>
+      <geom type="capsule" size="0.007" mass="0" contype="0" conaffinity="0" rgba="0.28 0.31 0.36 1" fromto="0.12000 -0.05000 -0.02200 -0.03750 0.06495 0.12100"/>
+      <site name="mast_r0" pos="-0.03750 0.06495 0.12100" size="0.006"/>
+      <site name="plate_r0" pos="-0.09000 0.00000 -0.02200" size="0.005"/>
+      <site name="mast_r1" pos="-0.03750 -0.06495 0.12100" size="0.006"/>
+      <site name="plate_r1" pos="0.12000 0.05000 -0.02200" size="0.005"/>
+      <site name="mast_r2" pos="0.07500 -0.00000 0.12100" size="0.006"/>
+      <site name="plate_r2" pos="0.12000 -0.05000 -0.02200" size="0.005"/>
+      <inertial pos="0.02000 0.00000 0.03000" mass="0.4500" fullinertia="0.002843 0.002843 0.003645 0.000000 0.000000 0.000000"/>
+    </body>
+      </body>
+      </body>
+    </body>
+    
+    
+  </worldbody>
+  <tendon>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <spatial name="hipc_l0" stiffness="300.0" damping="2.0" springlength="0 0.038755">
+      <site site="pelv_b0"/>
+      <site site="th_l_t0"/>
+    </spatial>
+    <spatial name="kneec_l0" stiffness="300.0" damping="2.0" springlength="0 0.104290">
+      <site site="th_l_b0"/>
+      <site site="sh_l_t0"/>
+    </spatial>
+    <spatial name="hipc_l1" stiffness="300.0" damping="2.0" springlength="0 0.153202">
+      <site site="pelv_b1"/>
+      <site site="th_l_t1"/>
+    </spatial>
+    <spatial name="kneec_l1" stiffness="300.0" damping="2.0" springlength="0 0.099186">
+      <site site="th_l_b1"/>
+      <site site="sh_l_t1"/>
+    </spatial>
+    <spatial name="hipc_l2" stiffness="300.0" damping="2.0" springlength="0 0.197123">
+      <site site="pelv_b2"/>
+      <site site="th_l_t2"/>
+    </spatial>
+    <spatial name="kneec_l2" stiffness="300.0" damping="2.0" springlength="0 0.109214">
+      <site site="th_l_b2"/>
+      <site site="sh_l_t2"/>
+    </spatial>
+    <spatial name="hipc_r0" stiffness="300.0" damping="2.0" springlength="0 0.195805">
+      <site site="pelv_b0"/>
+      <site site="th_r_t0"/>
+    </spatial>
+    <spatial name="kneec_r0" stiffness="300.0" damping="2.0" springlength="0 0.104290">
+      <site site="th_r_b0"/>
+      <site site="sh_r_t0"/>
+    </spatial>
+    <spatial name="hipc_r1" stiffness="300.0" damping="2.0" springlength="0 0.132589">
+      <site site="pelv_b1"/>
+      <site site="th_r_t1"/>
+    </spatial>
+    <spatial name="kneec_r1" stiffness="300.0" damping="2.0" springlength="0 0.099186">
+      <site site="th_r_b1"/>
+      <site site="sh_r_t1"/>
+    </spatial>
+    <spatial name="hipc_r2" stiffness="300.0" damping="2.0" springlength="0 0.088946">
+      <site site="pelv_b2"/>
+      <site site="th_r_t2"/>
+    </spatial>
+    <spatial name="kneec_r2" stiffness="300.0" damping="2.0" springlength="0 0.109214">
+      <site site="th_r_b2"/>
+      <site site="sh_r_t2"/>
+    </spatial>
+  </tendon>
+  <actuator>
+    <motor name="hip_yaw_l" joint="hip_yaw_l" gear="40"/>
+    <motor name="hip_roll_l" joint="hip_roll_l" gear="60"/>
+    <motor name="hip_pitch_l" joint="hip_pitch_l" gear="80"/>
+    <motor name="knee_l" joint="knee_l" gear="80"/>
+    <motor name="hip_yaw_r" joint="hip_yaw_r" gear="40"/>
+    <motor name="hip_roll_r" joint="hip_roll_r" gear="60"/>
+    <motor name="hip_pitch_r" joint="hip_pitch_r" gear="80"/>
+    <motor name="knee_r" joint="knee_r" gear="80"/>
+    <motor name="shoulder_pitch_l" joint="shoulder_pitch_l" gear="15"/>
+    <motor name="elbow_l" joint="elbow_l" gear="10"/>
+    <motor name="shoulder_pitch_r" joint="shoulder_pitch_r" gear="15"/>
+    <motor name="elbow_r" joint="elbow_r" gear="10"/>
+  </actuator>
+</mujoco>

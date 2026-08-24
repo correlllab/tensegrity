@@ -1,0 +1,378 @@
+<mujoco model="cell_graph">
+  <compiler angle="radian" autolimits="true"/>
+  <visual>
+    <global offwidth="1600" offheight="1200"/>
+    <headlight diffuse="0.7 0.7 0.7" ambient="0.45 0.45 0.45"
+               specular="0.1 0.1 0.1"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="flat" rgb1="1 1 1" rgb2="1 1 1"
+             width="256" height="256"/>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.88 0.89 0.90"
+             rgb2="0.96 0.96 0.97" width="512" height="512"/>
+    <material name="grid" texture="grid" texrepeat="10 10" reflectance="0.05"/>
+  </asset>
+  <option timestep="5e-05" integrator="implicitfast" gravity="0 0 -9.81"/>
+  <worldbody>
+    <light pos="1.2 -1.2 2.6" dir="-0.4 0.4 -1" directional="true"
+           diffuse="0.85 0.85 0.85"/>
+    <light pos="-1.5 1.0 2.0" dir="0.5 -0.35 -1" directional="true"
+           diffuse="0.35 0.35 0.35"/>
+    <geom name="floor" type="plane" size="4 4 0.1" material="grid"
+          contype="0" conaffinity="0"/>
+    <geom type="capsule" size="0.009" contype="0" conaffinity="0" rgba="0.22 0.24 0.28 1" fromto="0.00000 0.09000 0.00000 -0.04527 -0.07778 0.30000"/>
+    <geom type="capsule" size="0.009" contype="0" conaffinity="0" rgba="0.22 0.24 0.28 1" fromto="-0.07794 -0.04500 0.00000 0.09000 -0.00031 0.30000"/>
+    <geom type="capsule" size="0.009" contype="0" conaffinity="0" rgba="0.22 0.24 0.28 1" fromto="0.07794 -0.04500 0.00000 -0.04473 0.07810 0.30000"/>
+    <site name="c0_b0" pos="0.00000 0.09000 0.00000" size="0.005"/>
+    <site name="c0_t0" pos="-0.04473 0.07810 0.30000" size="0.005"/>
+    <site name="c0_b1" pos="-0.07794 -0.04500 0.00000" size="0.005"/>
+    <site name="c0_t1" pos="-0.04527 -0.07778 0.30000" size="0.005"/>
+    <site name="c0_b2" pos="0.07794 -0.04500 0.00000" size="0.005"/>
+    <site name="c0_t2" pos="0.09000 -0.00031 0.30000" size="0.005"/>
+    
+    <body name="c1_s0" pos="-0.01661 -0.01655 0.36000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="-0.06133 0.06155 -0.15000
+                    0.06133 -0.06155 0.15000"/>      <site name="c1_b0" pos="-0.06133 0.06155 -0.15000" size="0.005"/>      <site name="c1_t1" pos="0.06133 -0.06155 0.15000" size="0.005"/>    </body>
+    <body name="c1_s1" pos="0.02264 -0.00611 0.36000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="-0.02264 -0.08389 -0.15000
+                    0.02264 0.08389 0.15000"/>      <site name="c1_b1" pos="-0.02264 -0.08389 -0.15000" size="0.005"/>      <site name="c1_t2" pos="0.02264 0.08389 0.15000" size="0.005"/>    </body>
+    <body name="c1_s2" pos="-0.00603 0.02266 0.36000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="0.08397 0.02234 -0.15000
+                    -0.08397 -0.02234 0.15000"/>      <site name="c1_b2" pos="0.08397 0.02234 -0.15000" size="0.005"/>      <site name="c1_t0" pos="-0.08397 -0.02234 0.15000" size="0.005"/>    </body>
+    <body name="c2_s0" pos="0.00603 -0.02266 0.57000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="-0.08397 -0.02234 -0.15000
+                    0.08397 0.02234 0.15000"/>      <site name="c2_b0" pos="-0.08397 -0.02234 -0.15000" size="0.005"/>      <site name="c2_t1" pos="0.08397 0.02234 0.15000" size="0.005"/>    </body>
+    <body name="c2_s1" pos="0.01661 0.01655 0.57000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="0.06133 -0.06155 -0.15000
+                    -0.06133 0.06155 0.15000"/>      <site name="c2_b1" pos="0.06133 -0.06155 -0.15000" size="0.005"/>      <site name="c2_t2" pos="-0.06133 0.06155 0.15000" size="0.005"/>    </body>
+    <body name="c2_s2" pos="-0.02264 0.00611 0.57000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="0.02264 0.08389 -0.15000
+                    -0.02264 -0.08389 0.15000"/>      <site name="c2_b2" pos="0.02264 0.08389 -0.15000" size="0.005"/>      <site name="c2_t0" pos="-0.02264 -0.08389 0.15000" size="0.005"/>    </body>
+    <body name="c3_s0" pos="0.02264 -0.00611 0.78000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="-0.02264 -0.08389 -0.15000
+                    0.02264 0.08389 0.15000"/>      <site name="c3_b0" pos="-0.02264 -0.08389 -0.15000" size="0.005"/>      <site name="c3_t1" pos="0.02264 0.08389 0.15000" size="0.005"/>    </body>
+    <body name="c3_s1" pos="-0.00603 0.02266 0.78000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="0.08397 0.02234 -0.15000
+                    -0.08397 -0.02234 0.15000"/>      <site name="c3_b1" pos="0.08397 0.02234 -0.15000" size="0.005"/>      <site name="c3_t2" pos="-0.08397 -0.02234 0.15000" size="0.005"/>    </body>
+    <body name="c3_s2" pos="-0.01661 -0.01655 0.78000">
+      <freejoint/>
+      <geom type="capsule" size="0.009" mass="0.0200"
+            contype="0" conaffinity="0" rgba="0.30 0.33 0.38 1"
+            fromto="-0.06133 0.06155 -0.15000
+                    0.06133 -0.06155 0.15000"/>      <site name="c3_b2" pos="-0.06133 0.06155 -0.15000" size="0.005"/>      <site name="c3_t0" pos="0.06133 -0.06155 0.15000" size="0.005"/>    </body>
+  </worldbody>
+  <tendon>
+    <spatial name="c0" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c0_b0"/>
+      <site site="c0_b1"/>
+    </spatial>
+    <spatial name="c1" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152881">
+      <site site="c0_t0"/>
+      <site site="c0_t1"/>
+    </spatial>
+    <spatial name="c2" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300550">
+      <site site="c0_b0"/>
+      <site site="c0_t0"/>
+    </spatial>
+    <spatial name="c3" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152880">
+      <site site="c0_b1"/>
+      <site site="c0_b2"/>
+    </spatial>
+    <spatial name="c4" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c0_t1"/>
+      <site site="c0_t2"/>
+    </spatial>
+    <spatial name="c5" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300549">
+      <site site="c0_b1"/>
+      <site site="c0_t1"/>
+    </spatial>
+    <spatial name="c6" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c0_b2"/>
+      <site site="c0_b0"/>
+    </spatial>
+    <spatial name="c7" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152886">
+      <site site="c0_t2"/>
+      <site site="c0_t0"/>
+    </spatial>
+    <spatial name="c8" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300550">
+      <site site="c0_b2"/>
+      <site site="c0_t2"/>
+    </spatial>
+    <spatial name="c9" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c1_b0"/>
+      <site site="c1_b1"/>
+    </spatial>
+    <spatial name="c10" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152882">
+      <site site="c1_t0"/>
+      <site site="c1_t1"/>
+    </spatial>
+    <spatial name="c11" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300549">
+      <site site="c1_b0"/>
+      <site site="c1_t0"/>
+    </spatial>
+    <spatial name="c12" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c1_b1"/>
+      <site site="c1_b2"/>
+    </spatial>
+    <spatial name="c13" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152881">
+      <site site="c1_t1"/>
+      <site site="c1_t2"/>
+    </spatial>
+    <spatial name="c14" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c1_b1"/>
+      <site site="c1_t1"/>
+    </spatial>
+    <spatial name="c15" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152880">
+      <site site="c1_b2"/>
+      <site site="c1_b0"/>
+    </spatial>
+    <spatial name="c16" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152887">
+      <site site="c1_t2"/>
+      <site site="c1_t0"/>
+    </spatial>
+    <spatial name="c17" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c1_b2"/>
+      <site site="c1_t2"/>
+    </spatial>
+    <spatial name="c18" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098482">
+      <site site="c0_t0"/>
+      <site site="c1_b0"/>
+    </spatial>
+    <spatial name="c19" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225471">
+      <site site="c0_t0"/>
+      <site site="c1_t0"/>
+    </spatial>
+    <spatial name="c20" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192853">
+      <site site="c0_t0"/>
+      <site site="c1_b1"/>
+    </spatial>
+    <spatial name="c21" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c0_b0"/>
+      <site site="c1_b0"/>
+    </spatial>
+    <spatial name="c22" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098483">
+      <site site="c0_t1"/>
+      <site site="c1_b1"/>
+    </spatial>
+    <spatial name="c23" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225469">
+      <site site="c0_t1"/>
+      <site site="c1_t1"/>
+    </spatial>
+    <spatial name="c24" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192846">
+      <site site="c0_t1"/>
+      <site site="c1_b2"/>
+    </spatial>
+    <spatial name="c25" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c0_b1"/>
+      <site site="c1_b1"/>
+    </spatial>
+    <spatial name="c26" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098481">
+      <site site="c0_t2"/>
+      <site site="c1_b2"/>
+    </spatial>
+    <spatial name="c27" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225469">
+      <site site="c0_t2"/>
+      <site site="c1_t2"/>
+    </spatial>
+    <spatial name="c28" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192849">
+      <site site="c0_t2"/>
+      <site site="c1_b0"/>
+    </spatial>
+    <spatial name="c29" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c0_b2"/>
+      <site site="c1_b2"/>
+    </spatial>
+    <spatial name="c30" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152880">
+      <site site="c2_b0"/>
+      <site site="c2_b1"/>
+    </spatial>
+    <spatial name="c31" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152887">
+      <site site="c2_t0"/>
+      <site site="c2_t1"/>
+    </spatial>
+    <spatial name="c32" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c2_b0"/>
+      <site site="c2_t0"/>
+    </spatial>
+    <spatial name="c33" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c2_b1"/>
+      <site site="c2_b2"/>
+    </spatial>
+    <spatial name="c34" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152882">
+      <site site="c2_t1"/>
+      <site site="c2_t2"/>
+    </spatial>
+    <spatial name="c35" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300549">
+      <site site="c2_b1"/>
+      <site site="c2_t1"/>
+    </spatial>
+    <spatial name="c36" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c2_b2"/>
+      <site site="c2_b0"/>
+    </spatial>
+    <spatial name="c37" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152881">
+      <site site="c2_t2"/>
+      <site site="c2_t0"/>
+    </spatial>
+    <spatial name="c38" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c2_b2"/>
+      <site site="c2_t2"/>
+    </spatial>
+    <spatial name="c39" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098486">
+      <site site="c1_t0"/>
+      <site site="c2_b0"/>
+    </spatial>
+    <spatial name="c40" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c1_t0"/>
+      <site site="c2_t0"/>
+    </spatial>
+    <spatial name="c41" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192851">
+      <site site="c1_t0"/>
+      <site site="c2_b1"/>
+    </spatial>
+    <spatial name="c42" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c1_b0"/>
+      <site site="c2_b0"/>
+    </spatial>
+    <spatial name="c43" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098485">
+      <site site="c1_t1"/>
+      <site site="c2_b1"/>
+    </spatial>
+    <spatial name="c44" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c1_t1"/>
+      <site site="c2_t1"/>
+    </spatial>
+    <spatial name="c45" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192851">
+      <site site="c1_t1"/>
+      <site site="c2_b2"/>
+    </spatial>
+    <spatial name="c46" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c1_b1"/>
+      <site site="c2_b1"/>
+    </spatial>
+    <spatial name="c47" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098487">
+      <site site="c1_t2"/>
+      <site site="c2_b2"/>
+    </spatial>
+    <spatial name="c48" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c1_t2"/>
+      <site site="c2_t2"/>
+    </spatial>
+    <spatial name="c49" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192852">
+      <site site="c1_t2"/>
+      <site site="c2_b0"/>
+    </spatial>
+    <spatial name="c50" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c1_b2"/>
+      <site site="c2_b2"/>
+    </spatial>
+    <spatial name="c51" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c3_b0"/>
+      <site site="c3_b1"/>
+    </spatial>
+    <spatial name="c52" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152881">
+      <site site="c3_t0"/>
+      <site site="c3_t1"/>
+    </spatial>
+    <spatial name="c53" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c3_b0"/>
+      <site site="c3_t0"/>
+    </spatial>
+    <spatial name="c54" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152880">
+      <site site="c3_b1"/>
+      <site site="c3_b2"/>
+    </spatial>
+    <spatial name="c55" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152887">
+      <site site="c3_t1"/>
+      <site site="c3_t2"/>
+    </spatial>
+    <spatial name="c56" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300548">
+      <site site="c3_b1"/>
+      <site site="c3_t1"/>
+    </spatial>
+    <spatial name="c57" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152883">
+      <site site="c3_b2"/>
+      <site site="c3_b0"/>
+    </spatial>
+    <spatial name="c58" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.152882">
+      <site site="c3_t2"/>
+      <site site="c3_t0"/>
+    </spatial>
+    <spatial name="c59" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.300549">
+      <site site="c3_b2"/>
+      <site site="c3_t2"/>
+    </spatial>
+    <spatial name="c60" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098487">
+      <site site="c2_t0"/>
+      <site site="c3_b0"/>
+    </spatial>
+    <spatial name="c61" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c2_t0"/>
+      <site site="c3_t0"/>
+    </spatial>
+    <spatial name="c62" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192852">
+      <site site="c2_t0"/>
+      <site site="c3_b1"/>
+    </spatial>
+    <spatial name="c63" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c2_b0"/>
+      <site site="c3_b0"/>
+    </spatial>
+    <spatial name="c64" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098486">
+      <site site="c2_t1"/>
+      <site site="c3_b1"/>
+    </spatial>
+    <spatial name="c65" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c2_t1"/>
+      <site site="c3_t1"/>
+    </spatial>
+    <spatial name="c66" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192851">
+      <site site="c2_t1"/>
+      <site site="c3_b2"/>
+    </spatial>
+    <spatial name="c67" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c2_b1"/>
+      <site site="c3_b1"/>
+    </spatial>
+    <spatial name="c68" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.098485">
+      <site site="c2_t2"/>
+      <site site="c3_b2"/>
+    </spatial>
+    <spatial name="c69" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225473">
+      <site site="c2_t2"/>
+      <site site="c3_t2"/>
+    </spatial>
+    <spatial name="c70" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.192851">
+      <site site="c2_t2"/>
+      <site site="c3_b0"/>
+    </spatial>
+    <spatial name="c71" width="0.003" stiffness="40000.0" damping="4.00" springlength="0 0.225472">
+      <site site="c2_b2"/>
+      <site site="c3_b2"/>
+    </spatial>
+  </tendon>
+</mujoco>

@@ -1,0 +1,114 @@
+<mujoco model="tensegrity_prism_mpc">
+  <compiler angle="degree" autolimits="true"/>
+  <option timestep="0.002" integrator="RK4" gravity="0 0 0"/>
+
+  <default>
+    <joint damping="0.05"/>
+    <geom type="capsule" size="0.012" density="700" contype="0" conaffinity="0" rgba="0.15 0.2 0.85 1"/>
+    <site size="0.01" rgba="0.9 0.1 0.1 1"/>
+    <tendon width="0.002"/>
+    <motor ctrllimited="true" ctrlrange="-120 120"/>
+  </default>
+
+  <worldbody>
+    <light pos="0 0 2" dir="0 0 -1" diffuse="1 1 1"/>
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.95 0.95 0.95 1" contype="0" conaffinity="0"/>
+
+    <site name="anchor" pos="0 0 0.65" size="0.008" rgba="0.1 0.7 0.1 1"/>
+
+    <body name="strut0" pos="0.135 0.078 0.825">
+      <freejoint/>
+      <geom fromto="0.045 -0.078 0.175  -0.045 0.078 -0.175"/>
+      <site name="s_t0" pos="0.045 -0.078 0.175"/>
+      <site name="s_b0" pos="-0.045 0.078 -0.175"/>
+    </body>
+
+    <body name="strut1" pos="-0.135 0.078 0.825">
+      <freejoint/>
+      <geom fromto="0.045 0.078 0.175  -0.045 -0.078 -0.175"/>
+      <site name="s_t1" pos="0.045 0.078 0.175"/>
+      <site name="s_b1" pos="-0.045 -0.078 -0.175"/>
+    </body>
+
+    <body name="strut2" pos="0 -0.156 0.825">
+      <freejoint/>
+      <geom fromto="-0.09 0 0.175  0.09 0 -0.175"/>
+      <site name="s_t2" pos="-0.09 0 0.175"/>
+      <site name="s_b2" pos="0.09 0 -0.175"/>
+    </body>
+
+    <!-- End-effector marker at a top node for initial control experiments -->
+    <site name="ee" pos="0.18 0 1.0" size="0.012" rgba="1 0.2 0.2 1"/>
+  </worldbody>
+
+  <tendon>
+    <!-- Top ring -->
+    <spatial name="t_top01" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_t0"/>
+      <site site="s_t1"/>
+    </spatial>
+    <spatial name="t_top12" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_t1"/>
+      <site site="s_t2"/>
+    </spatial>
+    <spatial name="t_top20" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_t2"/>
+      <site site="s_t0"/>
+    </spatial>
+
+    <!-- Bottom ring -->
+    <spatial name="t_bot01" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_b0"/>
+      <site site="s_b1"/>
+    </spatial>
+    <spatial name="t_bot12" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_b1"/>
+      <site site="s_b2"/>
+    </spatial>
+    <spatial name="t_bot20" stiffness="1300" damping="8" springlength="0.30">
+      <site site="s_b2"/>
+      <site site="s_b0"/>
+    </spatial>
+
+    <!-- Cross tendons (actuated) -->
+    <spatial name="t_cross0" stiffness="900" damping="6" springlength="0.48">
+      <site site="s_t0"/>
+      <site site="s_b1"/>
+    </spatial>
+    <spatial name="t_cross1" stiffness="900" damping="6" springlength="0.48">
+      <site site="s_t1"/>
+      <site site="s_b2"/>
+    </spatial>
+    <spatial name="t_cross2" stiffness="900" damping="6" springlength="0.48">
+      <site site="s_t2"/>
+      <site site="s_b0"/>
+    </spatial>
+
+    <!-- Weak centering tendons to remove free-drift modes in zero gravity -->
+    <spatial name="t_anchor0" stiffness="55" damping="4" springlength="0.18">
+      <site site="anchor"/>
+      <site site="s_b0"/>
+    </spatial>
+    <spatial name="t_anchor1" stiffness="55" damping="4" springlength="0.18">
+      <site site="anchor"/>
+      <site site="s_b1"/>
+    </spatial>
+    <spatial name="t_anchor2" stiffness="55" damping="4" springlength="0.18">
+      <site site="anchor"/>
+      <site site="s_b2"/>
+    </spatial>
+  </tendon>
+
+  <actuator>
+    <motor name="a_cross0" tendon="t_cross0" gear="1"/>
+    <motor name="a_cross1" tendon="t_cross1" gear="1"/>
+    <motor name="a_cross2" tendon="t_cross2" gear="1"/>
+  </actuator>
+
+  <sensor>
+    <framepos name="s_ee_pos" objtype="site" objname="s_t0"/>
+    <tendonpos name="s_cross0_len" tendon="t_cross0"/>
+    <tendonpos name="s_cross1_len" tendon="t_cross1"/>
+    <tendonpos name="s_cross2_len" tendon="t_cross2"/>
+  </sensor>
+</mujoco>

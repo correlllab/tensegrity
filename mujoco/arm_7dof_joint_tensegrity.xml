@@ -1,0 +1,188 @@
+<mujoco model="arm_7dof_joint_tensegrity">
+  <compiler angle="degree" autolimits="true"/>
+  <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+
+  <default>
+    <joint damping="0.8" armature="0.015"/>
+    <geom density="950" friction="0.8 0.05 0.02"/>
+    <site size="0.007"/>
+    <motor ctrllimited="true" ctrlrange="-1 1"/>
+    <tendon width="0.006" rgba="0.95 0.08 0.08 1"/>
+  </default>
+
+  <worldbody>
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.95 0.95 0.95 1"/>
+
+    <body name="torso" pos="0 0 1.0">
+      <geom name="torso_geom" type="box" size="0.05 0.04 0.11" pos="0 0 0.11" rgba="0.2 0.2 0.25 0.45"/>
+
+      <!-- Shoulder anchor sites on torso side -->
+      <site name="sh_t1" pos="0.055 0.000 0.030" rgba="0.1 0.6 0.2 1"/>
+      <site name="sh_t2" pos="-0.055 0.000 0.030" rgba="0.1 0.6 0.2 1"/>
+      <site name="sh_t3" pos="0.000 0.055 0.030" rgba="0.1 0.6 0.2 1"/>
+      <site name="sh_t4" pos="0.000 -0.055 0.030" rgba="0.1 0.6 0.2 1"/>
+
+      <body name="shoulder_yaw_frame" pos="0 0 0.02">
+        <inertial pos="0 0 0" mass="0.01" diaginertia="1e-5 1e-5 1e-5"/>
+        <joint name="shoulder_yaw" type="hinge" axis="0 0 1" range="-120 120"/>
+
+        <body name="shoulder_pitch_frame" pos="0 0 0">
+          <inertial pos="0 0 0" mass="0.01" diaginertia="1e-5 1e-5 1e-5"/>
+          <joint name="shoulder_pitch" type="hinge" axis="0 1 0" range="-90 120"/>
+
+          <body name="shoulder_roll_frame" pos="0 0 0">
+            <inertial pos="0 0 0" mass="0.01" diaginertia="1e-5 1e-5 1e-5"/>
+            <joint name="shoulder_roll" type="hinge" axis="1 0 0" range="-90 90"/>
+
+            <body name="upper_arm" pos="0 0 0">
+              <!-- Upper-arm link as a 3-strut truss (not a single tube). -->
+              <geom name="upper_arm_strut_a" type="box" size="0.005 0.005 0.15" pos="0.030 0.000 -0.150" rgba="0.12 0.42 0.82 0.45"/>
+              <geom name="upper_arm_strut_b" type="box" size="0.005 0.005 0.15" pos="-0.015 0.026 -0.150" rgba="0.12 0.42 0.82 0.45"/>
+              <geom name="upper_arm_strut_c" type="box" size="0.005 0.005 0.15" pos="-0.015 -0.026 -0.150" rgba="0.12 0.42 0.82 0.45"/>
+              <geom name="upper_arm_endcap_p" type="box" size="0.030 0.030 0.005" pos="0 0 -0.010" rgba="0.16 0.50 0.90 0.20"/>
+              <geom name="upper_arm_endcap_d" type="box" size="0.030 0.030 0.005" pos="0 0 -0.290" rgba="0.16 0.50 0.90 0.20"/>
+
+              <!-- Shoulder anchor sites on upper-arm side -->
+              <site name="sh_u1" pos="0.045 0.000 -0.020" rgba="0.1 0.6 0.2 1"/>
+              <site name="sh_u2" pos="-0.045 0.000 -0.020" rgba="0.1 0.6 0.2 1"/>
+              <site name="sh_u3" pos="0.000 0.045 -0.020" rgba="0.1 0.6 0.2 1"/>
+              <site name="sh_u4" pos="0.000 -0.045 -0.020" rgba="0.1 0.6 0.2 1"/>
+
+              <!-- Elbow proximal sites -->
+              <site name="el_u1" pos="0.032 0.000 -0.285" rgba="0.1 0.6 0.2 1"/>
+              <site name="el_u2" pos="-0.032 0.000 -0.285" rgba="0.1 0.6 0.2 1"/>
+              <site name="el_u3" pos="0.000 0.032 -0.285" rgba="0.1 0.6 0.2 1"/>
+              <site name="el_u4" pos="0.000 -0.032 -0.285" rgba="0.1 0.6 0.2 1"/>
+
+              <body name="elbow_flex_frame" pos="0 0 -0.30">
+                <inertial pos="0 0 0" mass="0.01" diaginertia="1e-5 1e-5 1e-5"/>
+                <joint name="elbow_flex" type="hinge" axis="0 1 0" range="0 150"/>
+
+                <body name="forearm_roll_frame" pos="0 0 0">
+                  <inertial pos="0 0 0" mass="0.01" diaginertia="1e-5 1e-5 1e-5"/>
+                  <joint name="forearm_roll" type="hinge" axis="0 0 1" range="-120 120"/>
+
+                  <body name="lower_arm" pos="0 0 0">
+                    <!-- Forearm link as a 3-strut truss. -->
+                    <geom name="lower_arm_strut_a" type="box" size="0.0048 0.0048 0.13" pos="0.024 0.000 -0.130" rgba="0.18 0.68 0.48 0.45"/>
+                    <geom name="lower_arm_strut_b" type="box" size="0.0048 0.0048 0.13" pos="-0.012 0.021 -0.130" rgba="0.18 0.68 0.48 0.45"/>
+                    <geom name="lower_arm_strut_c" type="box" size="0.0048 0.0048 0.13" pos="-0.012 -0.021 -0.130" rgba="0.18 0.68 0.48 0.45"/>
+                    <geom name="lower_arm_endcap_p" type="box" size="0.024 0.024 0.004" pos="0 0 -0.010" rgba="0.22 0.78 0.58 0.20"/>
+                    <geom name="lower_arm_endcap_d" type="box" size="0.024 0.024 0.004" pos="0 0 -0.250" rgba="0.22 0.78 0.58 0.20"/>
+
+                    <!-- Elbow distal sites -->
+                    <site name="el_f1" pos="0.028 0.000 -0.015" rgba="0.1 0.6 0.2 1"/>
+                    <site name="el_f2" pos="-0.028 0.000 -0.015" rgba="0.1 0.6 0.2 1"/>
+                    <site name="el_f3" pos="0.000 0.028 -0.015" rgba="0.1 0.6 0.2 1"/>
+                    <site name="el_f4" pos="0.000 -0.028 -0.015" rgba="0.1 0.6 0.2 1"/>
+
+                    <!-- Wrist proximal sites -->
+                    <site name="wr_f1" pos="0.025 0.000 -0.245" rgba="0.1 0.6 0.2 1"/>
+                    <site name="wr_f2" pos="-0.025 0.000 -0.245" rgba="0.1 0.6 0.2 1"/>
+                    <site name="wr_f3" pos="0.000 0.025 -0.245" rgba="0.1 0.6 0.2 1"/>
+                    <site name="wr_f4" pos="0.000 -0.025 -0.245" rgba="0.1 0.6 0.2 1"/>
+
+                    <body name="wrist_pitch_frame" pos="0 0 -0.26">
+                      <inertial pos="0 0 0" mass="0.008" diaginertia="8e-6 8e-6 8e-6"/>
+                      <joint name="wrist_pitch" type="hinge" axis="0 1 0" range="-80 80"/>
+
+                      <body name="wrist_yaw_frame" pos="0 0 0">
+                        <inertial pos="0 0 0" mass="0.008" diaginertia="8e-6 8e-6 8e-6"/>
+                        <joint name="wrist_yaw" type="hinge" axis="1 0 0" range="-40 40"/>
+
+                        <body name="hand" pos="0 0 0">
+                          <geom name="hand_geom" type="box" size="0.035 0.025 0.06" pos="0 0 -0.06" rgba="0.9 0.6 0.35 0.35"/>
+
+                          <!-- Wrist distal sites -->
+                          <site name="wr_h1" pos="0.022 0.000 -0.015" rgba="0.1 0.6 0.2 1"/>
+                          <site name="wr_h2" pos="-0.022 0.000 -0.015" rgba="0.1 0.6 0.2 1"/>
+                          <site name="wr_h3" pos="0.000 0.022 -0.015" rgba="0.1 0.6 0.2 1"/>
+                          <site name="wr_h4" pos="0.000 -0.022 -0.015" rgba="0.1 0.6 0.2 1"/>
+
+                          <site name="ee" pos="0 0 -0.12" size="0.01" rgba="1 0 0 1"/>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <tendon>
+    <!-- Joint-local tensegrity-style passive networks: shoulder -->
+    <spatial name="sh_c1" stiffness="420" damping="7" springlength="0.095" rgba="0.9 0.15 0.15 1"><site site="sh_t1"/><site site="sh_u3"/></spatial>
+    <spatial name="sh_c2" stiffness="420" damping="7" springlength="0.095" rgba="0.9 0.15 0.15 1"><site site="sh_t3"/><site site="sh_u2"/></spatial>
+    <spatial name="sh_c3" stiffness="420" damping="7" springlength="0.095" rgba="0.9 0.15 0.15 1"><site site="sh_t2"/><site site="sh_u4"/></spatial>
+    <spatial name="sh_c4" stiffness="420" damping="7" springlength="0.095" rgba="0.9 0.15 0.15 1"><site site="sh_t4"/><site site="sh_u1"/></spatial>
+
+    <!-- elbow -->
+    <spatial name="el_c1" stiffness="360" damping="6" springlength="0.070" rgba="0.9 0.15 0.15 1"><site site="el_u1"/><site site="el_f3"/></spatial>
+    <spatial name="el_c2" stiffness="360" damping="6" springlength="0.070" rgba="0.9 0.15 0.15 1"><site site="el_u3"/><site site="el_f2"/></spatial>
+    <spatial name="el_c3" stiffness="360" damping="6" springlength="0.070" rgba="0.9 0.15 0.15 1"><site site="el_u2"/><site site="el_f4"/></spatial>
+    <spatial name="el_c4" stiffness="360" damping="6" springlength="0.070" rgba="0.9 0.15 0.15 1"><site site="el_u4"/><site site="el_f1"/></spatial>
+
+    <!-- wrist -->
+    <spatial name="wr_c1" stiffness="260" damping="4" springlength="0.052" rgba="0.9 0.15 0.15 1"><site site="wr_f1"/><site site="wr_h3"/></spatial>
+    <spatial name="wr_c2" stiffness="260" damping="4" springlength="0.052" rgba="0.9 0.15 0.15 1"><site site="wr_f3"/><site site="wr_h2"/></spatial>
+    <spatial name="wr_c3" stiffness="260" damping="4" springlength="0.052" rgba="0.9 0.15 0.15 1"><site site="wr_f2"/><site site="wr_h4"/></spatial>
+    <spatial name="wr_c4" stiffness="260" damping="4" springlength="0.052" rgba="0.9 0.15 0.15 1"><site site="wr_f4"/><site site="wr_h1"/></spatial>
+
+    <!-- Actuated tendon pairs (proxy for proximal motors + cable transmission) -->
+    <fixed name="t_sh_yaw_pos"><joint joint="shoulder_yaw" coef="1"/></fixed>
+    <fixed name="t_sh_yaw_neg"><joint joint="shoulder_yaw" coef="-1"/></fixed>
+
+    <fixed name="t_sh_pitch_pos"><joint joint="shoulder_pitch" coef="1"/></fixed>
+    <fixed name="t_sh_pitch_neg"><joint joint="shoulder_pitch" coef="-1"/></fixed>
+
+    <fixed name="t_sh_roll_pos"><joint joint="shoulder_roll" coef="1"/></fixed>
+    <fixed name="t_sh_roll_neg"><joint joint="shoulder_roll" coef="-1"/></fixed>
+
+    <fixed name="t_elbow_pos"><joint joint="elbow_flex" coef="1"/></fixed>
+    <fixed name="t_elbow_neg"><joint joint="elbow_flex" coef="-1"/></fixed>
+
+    <fixed name="t_roll_pos"><joint joint="forearm_roll" coef="1"/></fixed>
+    <fixed name="t_roll_neg"><joint joint="forearm_roll" coef="-1"/></fixed>
+
+    <fixed name="t_wr_pitch_pos"><joint joint="wrist_pitch" coef="1"/></fixed>
+    <fixed name="t_wr_pitch_neg"><joint joint="wrist_pitch" coef="-1"/></fixed>
+
+    <fixed name="t_wr_yaw_pos"><joint joint="wrist_yaw" coef="1"/></fixed>
+    <fixed name="t_wr_yaw_neg"><joint joint="wrist_yaw" coef="-1"/></fixed>
+  </tendon>
+
+  <actuator>
+    <motor name="a_sh_yaw_pos" tendon="t_sh_yaw_pos" gear="32"/>
+    <motor name="a_sh_yaw_neg" tendon="t_sh_yaw_neg" gear="32"/>
+
+    <motor name="a_sh_pitch_pos" tendon="t_sh_pitch_pos" gear="36"/>
+    <motor name="a_sh_pitch_neg" tendon="t_sh_pitch_neg" gear="36"/>
+
+    <motor name="a_sh_roll_pos" tendon="t_sh_roll_pos" gear="28"/>
+    <motor name="a_sh_roll_neg" tendon="t_sh_roll_neg" gear="28"/>
+
+    <motor name="a_elbow_pos" tendon="t_elbow_pos" gear="38"/>
+    <motor name="a_elbow_neg" tendon="t_elbow_neg" gear="38"/>
+
+    <motor name="a_roll_pos" tendon="t_roll_pos" gear="18"/>
+    <motor name="a_roll_neg" tendon="t_roll_neg" gear="18"/>
+
+    <motor name="a_wr_pitch_pos" tendon="t_wr_pitch_pos" gear="16"/>
+    <motor name="a_wr_pitch_neg" tendon="t_wr_pitch_neg" gear="16"/>
+
+    <motor name="a_wr_yaw_pos" tendon="t_wr_yaw_pos" gear="14"/>
+    <motor name="a_wr_yaw_neg" tendon="t_wr_yaw_neg" gear="14"/>
+  </actuator>
+
+  <sensor>
+    <framepos name="s_ee_pos" objtype="site" objname="ee"/>
+  </sensor>
+
+  <keyframe>
+    <key name="home" qpos="0 0 0 35 0 0 0" ctrl="0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

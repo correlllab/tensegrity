@@ -1,0 +1,181 @@
+<mujoco model="humanoid27_tensegrity_m0">
+  <!-- M0: mass-true rigid skeleton for MJPC gait feasibility and actuator sizing.
+       27 actuated DoF. Motor masses are lumped at their apparel mounting sites
+       (pelvis belt, torso vest, proximal limb cuffs), NOT at the joints they drive,
+       to reflect the tendon-transmission architecture. Torque limits per
+       design/codesign_plan.md section 4. Armature approximates reflected
+       motor+spool inertia; joint damping approximates tendon/channel losses. -->
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.004" integrator="implicitfast" solver="Newton" iterations="100"/>
+
+  <default>
+    <joint damping="2.0" armature="0.03" limited="true"/>
+    <geom friction="1.0 0.005 0.0001" condim="3" contype="1" conaffinity="0"
+          rgba="0.75 0.75 0.78 1"/>
+    <motor ctrllimited="true"/>
+    <default class="motorpack">
+      <geom type="sphere" size="0.045" contype="0" conaffinity="0" rgba="0.85 0.35 0.15 1"/>
+    </default>
+  </default>
+
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.2 0.25 0.3" rgb2="0.3 0.35 0.4"
+             width="512" height="512"/>
+    <material name="grid" texture="grid" texrepeat="8 8" reflectance="0.1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 3" dir="0 0 -1" directional="true"/>
+    <geom name="floor" type="plane" size="20 20 0.1" material="grid" contype="1" conaffinity="1"/>
+
+    <body name="pelvis" pos="0 0 0.936">
+      <freejoint name="root"/>
+      <!-- 0.8 structure + 4.8 hip motors + 2.5 battery -->
+      <geom name="pelvis_geom" type="box" size="0.10 0.14 0.06" mass="8.1"/>
+      <site name="pelvis_site" pos="0 0 0" size="0.01"/>
+
+      <!-- ==================== LEFT LEG (+y) ==================== -->
+      <body name="thigh_l" pos="0 0.09 -0.06">
+        <joint name="hip_yaw_l"   axis="0 0 1" range="-0.8 0.8"/>
+        <joint name="hip_roll_l"  axis="1 0 0" range="-0.4 0.8"/>
+        <joint name="hip_pitch_l" axis="0 1 0" range="-2.0 0.7"/>
+        <geom name="thigh_l_geom" type="capsule" fromto="0 0 0 0 0 -0.40" size="0.055" mass="0.35"/>
+        <geom name="knee_motor_l" class="motorpack" pos="0.05 0 -0.08" mass="0.7"/>
+        <body name="shank_l" pos="0 0 -0.40">
+          <joint name="knee_l" axis="0 1 0" range="-0.05 2.4"/>
+          <geom name="shank_l_geom" type="capsule" fromto="0 0 0 0 0 -0.40" size="0.042" mass="0.30"/>
+          <geom name="ankle_motors_l" class="motorpack" pos="0.045 0 -0.07" mass="1.4"/>
+          <body name="foot_l" pos="0 0 -0.40">
+            <joint name="ankle_pitch_l" axis="0 1 0" range="-0.9 0.9"/>
+            <joint name="ankle_roll_l"  axis="1 0 0" range="-0.4 0.4"/>
+            <geom name="foot_l_geom" type="box" pos="0.04 0 -0.045" size="0.12 0.05 0.03" mass="0.40"/>
+            <site name="foot_l_site" pos="0.04 0 -0.075" size="0.01"/>
+            <site name="sp2" pos="0.16 0 -0.075" size="0.008"/>
+            <site name="sp3" pos="-0.08 0 -0.075" size="0.008"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- ==================== RIGHT LEG (-y) ==================== -->
+      <body name="thigh_r" pos="0 -0.09 -0.06">
+        <joint name="hip_yaw_r"   axis="0 0 1" range="-0.8 0.8"/>
+        <joint name="hip_roll_r"  axis="1 0 0" range="-0.8 0.4"/>
+        <joint name="hip_pitch_r" axis="0 1 0" range="-2.0 0.7"/>
+        <geom name="thigh_r_geom" type="capsule" fromto="0 0 0 0 0 -0.40" size="0.055" mass="0.35"/>
+        <geom name="knee_motor_r" class="motorpack" pos="0.05 0 -0.08" mass="0.7"/>
+        <body name="shank_r" pos="0 0 -0.40">
+          <joint name="knee_r" axis="0 1 0" range="-0.05 2.4"/>
+          <geom name="shank_r_geom" type="capsule" fromto="0 0 0 0 0 -0.40" size="0.042" mass="0.30"/>
+          <geom name="ankle_motors_r" class="motorpack" pos="0.045 0 -0.07" mass="1.4"/>
+          <body name="foot_r" pos="0 0 -0.40">
+            <joint name="ankle_pitch_r" axis="0 1 0" range="-0.9 0.9"/>
+            <joint name="ankle_roll_r"  axis="1 0 0" range="-0.4 0.4"/>
+            <geom name="foot_r_geom" type="box" pos="0.04 0 -0.045" size="0.12 0.05 0.03" mass="0.40"/>
+            <site name="foot_r_site" pos="0.04 0 -0.075" size="0.01"/>
+            <site name="sp0" pos="0.16 0 -0.075" size="0.008"/>
+            <site name="sp1" pos="-0.08 0 -0.075" size="0.008"/>
+          </body>
+        </body>
+      </body>
+
+      <!-- ==================== TORSO ==================== -->
+      <body name="torso" pos="0 0 0.10">
+        <joint name="waist_yaw"   axis="0 0 1" range="-0.7 0.7"/>
+        <joint name="waist_pitch" axis="0 1 0" range="-0.5 0.6"/>
+        <joint name="waist_roll"  axis="1 0 0" range="-0.4 0.4"/>
+        <!-- 1.5 structure + 2.4 spine motors + 3.0 shoulder motors + 0.4 neck motors + 0.5 compute -->
+        <geom name="torso_geom" type="box" pos="0 0 0.22" size="0.11 0.16 0.22" mass="7.8"/>
+        <site name="imu" pos="0 0 0.30" size="0.01"/>
+
+        <body name="head" pos="0 0 0.50">
+          <joint name="neck_pitch" axis="0 1 0" range="-0.6 0.6"/>
+          <joint name="neck_yaw"   axis="0 0 1" range="-1.0 1.0"/>
+          <geom name="head_geom" type="sphere" pos="0 0 0.07" size="0.09" mass="0.60"/>
+          <site name="head_site" pos="0 0 0.07" size="0.01"/>
+        </body>
+
+        <!-- ==================== LEFT ARM (+y) ==================== -->
+        <body name="upper_arm_l" pos="0 0.24 0.40">
+          <joint name="shoulder_pitch_l" axis="0 1 0" range="-3.0 1.0"/>
+          <joint name="shoulder_roll_l"  axis="1 0 0" range="-0.5 1.8"/>
+          <joint name="shoulder_yaw_l"   axis="0 0 1" range="-1.5 1.5"/>
+          <geom name="uarm_l_geom" type="capsule" fromto="0 0 0 0 0 -0.28" size="0.038" mass="0.20"/>
+          <geom name="arm_motors_l" class="motorpack" pos="0.04 0 -0.06" size="0.035" mass="0.70"/>
+          <body name="forearm_l" pos="0 0 -0.28">
+            <joint name="elbow_l" axis="0 1 0" range="-2.4 0.05"/>
+            <geom name="farm_l_geom" type="capsule" fromto="0 0 0 0 0 -0.24" size="0.032" mass="0.18"/>
+            <body name="hand_l" pos="0 0 -0.24">
+              <joint name="wrist_l" axis="0 0 1" range="-1.4 1.4"/>
+              <geom name="hand_l_geom" type="capsule" fromto="0 0 0 0 0 -0.08" size="0.028" mass="0.07"/>
+              <site name="ee_l" pos="0 0 -0.08" size="0.01"/>
+            </body>
+          </body>
+        </body>
+
+        <!-- ==================== RIGHT ARM (-y) ==================== -->
+        <body name="upper_arm_r" pos="0 -0.24 0.40">
+          <joint name="shoulder_pitch_r" axis="0 1 0" range="-3.0 1.0"/>
+          <joint name="shoulder_roll_r"  axis="1 0 0" range="-1.8 0.5"/>
+          <joint name="shoulder_yaw_r"   axis="0 0 1" range="-1.5 1.5"/>
+          <geom name="uarm_r_geom" type="capsule" fromto="0 0 0 0 0 -0.28" size="0.038" mass="0.20"/>
+          <geom name="arm_motors_r" class="motorpack" pos="0.04 0 -0.06" size="0.035" mass="0.70"/>
+          <body name="forearm_r" pos="0 0 -0.28">
+            <joint name="elbow_r" axis="0 1 0" range="-2.4 0.05"/>
+            <geom name="farm_r_geom" type="capsule" fromto="0 0 0 0 0 -0.24" size="0.032" mass="0.18"/>
+            <body name="hand_r" pos="0 0 -0.24">
+              <joint name="wrist_r" axis="0 0 1" range="-1.4 1.4"/>
+              <geom name="hand_r_geom" type="capsule" fromto="0 0 0 0 0 -0.08" size="0.028" mass="0.07"/>
+              <site name="ee_r" pos="0 0 -0.08" size="0.01"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <!-- MJPC convention: ctrl normalized to [-1,1], physical torque in gear (Nm).
+       MJPC's sampling noise is absolute in ctrl units and its control costs
+       assume O(1) controls. -->
+  <actuator>
+    <motor joint="hip_yaw_l"        name="hip_yaw_l"        gear="40" ctrlrange="-1 1"/>
+    <motor joint="hip_roll_l"       name="hip_roll_l"       gear="60" ctrlrange="-1 1"/>
+    <motor joint="hip_pitch_l"      name="hip_pitch_l"      gear="80" ctrlrange="-1 1"/>
+    <motor joint="knee_l"           name="knee_l"           gear="80" ctrlrange="-1 1"/>
+    <motor joint="ankle_pitch_l"    name="ankle_pitch_l"    gear="70" ctrlrange="-1 1"/>
+    <motor joint="ankle_roll_l"     name="ankle_roll_l"     gear="40" ctrlrange="-1 1"/>
+    <motor joint="hip_yaw_r"        name="hip_yaw_r"        gear="40" ctrlrange="-1 1"/>
+    <motor joint="hip_roll_r"       name="hip_roll_r"       gear="60" ctrlrange="-1 1"/>
+    <motor joint="hip_pitch_r"      name="hip_pitch_r"      gear="80" ctrlrange="-1 1"/>
+    <motor joint="knee_r"           name="knee_r"           gear="80" ctrlrange="-1 1"/>
+    <motor joint="ankle_pitch_r"    name="ankle_pitch_r"    gear="70" ctrlrange="-1 1"/>
+    <motor joint="ankle_roll_r"     name="ankle_roll_r"     gear="40" ctrlrange="-1 1"/>
+    <motor joint="waist_yaw"        name="waist_yaw"        gear="60" ctrlrange="-1 1"/>
+    <motor joint="waist_pitch"      name="waist_pitch"      gear="60" ctrlrange="-1 1"/>
+    <motor joint="waist_roll"       name="waist_roll"       gear="60" ctrlrange="-1 1"/>
+    <motor joint="neck_pitch"       name="neck_pitch"       gear="10" ctrlrange="-1 1"/>
+    <motor joint="neck_yaw"         name="neck_yaw"         gear="10" ctrlrange="-1 1"/>
+    <motor joint="shoulder_pitch_l" name="shoulder_pitch_l" gear="30" ctrlrange="-1 1"/>
+    <motor joint="shoulder_roll_l"  name="shoulder_roll_l"  gear="30" ctrlrange="-1 1"/>
+    <motor joint="shoulder_yaw_l"   name="shoulder_yaw_l"   gear="30" ctrlrange="-1 1"/>
+    <motor joint="elbow_l"          name="elbow_l"          gear="20" ctrlrange="-1 1"/>
+    <motor joint="wrist_l"          name="wrist_l"          gear="10" ctrlrange="-1 1"/>
+    <motor joint="shoulder_pitch_r" name="shoulder_pitch_r" gear="30" ctrlrange="-1 1"/>
+    <motor joint="shoulder_roll_r"  name="shoulder_roll_r"  gear="30" ctrlrange="-1 1"/>
+    <motor joint="shoulder_yaw_r"   name="shoulder_yaw_r"   gear="30" ctrlrange="-1 1"/>
+    <motor joint="elbow_r"          name="elbow_r"          gear="20" ctrlrange="-1 1"/>
+    <motor joint="wrist_r"          name="wrist_r"          gear="10" ctrlrange="-1 1"/>
+  </actuator>
+
+  <!-- No <sensor> block here: MJPC requires user (cost) sensors to be first in
+       the compiled model, so sensors are defined by the including task XMLs. -->
+  <keyframe>
+    <key name="home"
+         qpos="0 0 0.936 1 0 0 0
+               0 0 0 0 0 0
+               0 0 0 0 0 0
+               0 0 0
+               0 0
+               0 0 0 0 0
+               0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

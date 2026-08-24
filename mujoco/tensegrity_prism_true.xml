@@ -1,0 +1,78 @@
+<mujoco model="tensegrity_prism_formfind">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.0005" integrator="implicitfast" gravity="0 0 -9.81"/>
+  <default>
+    <geom contype="0" conaffinity="0" rgba="0.22 0.24 0.28 1"/>
+    <site size="0.006" rgba="0.9 0.6 0.2 1"/>
+  </default>
+  <worldbody>
+    <light pos="0 0 2" dir="0 0 -1" directional="true"/>
+    <body name="strut0" pos="0.00612 0.02265 0.15000">
+      <freejoint/>
+      <geom type="capsule" size="0.010" density="900"
+            fromto="0.08388 -0.02265 -0.15000 -0.08388 0.02265 0.15000"/>
+      <site name="b0" pos="0.08388 -0.02265 -0.15000"/>
+      <site name="t1" pos="-0.08388 0.02265 0.15000"/>
+    </body>
+    <body name="strut1" pos="-0.02268 -0.00603 0.15000">
+      <freejoint/>
+      <geom type="capsule" size="0.010" density="900"
+            fromto="-0.02232 0.08397 -0.15000 0.02232 -0.08397 0.15000"/>
+      <site name="b1" pos="-0.02232 0.08397 -0.15000"/>
+      <site name="t2" pos="0.02232 -0.08397 0.15000"/>
+    </body>
+    <body name="strut2" pos="0.01656 -0.01663 0.15000">
+      <freejoint/>
+      <geom type="capsule" size="0.010" density="900"
+            fromto="-0.06156 -0.06132 -0.15000 0.06156 0.06132 0.15000"/>
+      <site name="b2" pos="-0.06156 -0.06132 -0.15000"/>
+      <site name="t0" pos="0.06156 0.06132 0.15000"/>
+    </body>
+  </worldbody>
+  <tendon>
+    <spatial name="c0" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b0"/>
+      <site site="b1"/>
+    </spatial>
+    <spatial name="c1" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="t0"/>
+      <site site="t1"/>
+    </spatial>
+    <spatial name="c2" stiffness="2000.0" damping="6.0" springlength="0 0.26712"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b0"/>
+      <site site="t0"/>
+    </spatial>
+    <spatial name="c3" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b1"/>
+      <site site="b2"/>
+    </spatial>
+    <spatial name="c4" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="t1"/>
+      <site site="t2"/>
+    </spatial>
+    <spatial name="c5" stiffness="2000.0" damping="6.0" springlength="0 0.26712"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b1"/>
+      <site site="t1"/>
+    </spatial>
+    <spatial name="c6" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b2"/>
+      <site site="b0"/>
+    </spatial>
+    <spatial name="c7" stiffness="2000.0" damping="6.0" springlength="0 0.13718"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="t2"/>
+      <site site="t0"/>
+    </spatial>
+    <spatial name="c8" stiffness="2000.0" damping="6.0" springlength="0 0.26712"
+             width="0.0025" rgba="0.95 0.97 1 1">
+      <site site="b2"/>
+      <site site="t2"/>
+    </spatial></tendon>
+</mujoco>

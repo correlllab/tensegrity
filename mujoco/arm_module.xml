@@ -1,0 +1,77 @@
+<mujoco model="textile_tensegrity_arm_module">
+  <compiler angle="degree" autolimits="true"/>
+  <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+
+  <default>
+    <joint damping="0.6" armature="0.01"/>
+    <geom contype="1" conaffinity="1" friction="0.8 0.05 0.02" density="900"/>
+    <motor ctrllimited="true" ctrlrange="-1 1"/>
+  </default>
+
+  <worldbody>
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.9 0.9 0.9 1"/>
+
+    <body name="torso_anchor" pos="0 0 0.95">
+      <geom name="torso" type="capsule" fromto="0 0 0 0 0 0.25" size="0.06" rgba="0.2 0.2 0.25 1"/>
+
+      <body name="upper_arm" pos="0 0 0.22">
+        <joint name="shoulder_pitch" type="hinge" axis="0 1 0" range="-70 90"/>
+        <geom name="upper_arm_geom" type="capsule" fromto="0 0 0 0 0 -0.30" size="0.035" rgba="0.2 0.45 0.8 1"/>
+
+        <body name="forearm" pos="0 0 -0.30">
+          <joint name="elbow_flex" type="hinge" axis="0 1 0" range="0 140"/>
+          <geom name="forearm_geom" type="capsule" fromto="0 0 0 0 0 -0.28" size="0.03" rgba="0.2 0.65 0.45 1"/>
+
+          <body name="hand" pos="0 0 -0.28">
+            <geom name="hand_geom" type="box" size="0.03 0.025 0.06" rgba="0.85 0.55 0.3 1"/>
+            <site name="ee" pos="0 0 -0.06" size="0.01" rgba="1 0 0 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <tendon>
+    <fixed name="t_shoulder_flex">
+      <joint joint="shoulder_pitch" coef="1"/>
+    </fixed>
+    <fixed name="t_shoulder_ext">
+      <joint joint="shoulder_pitch" coef="-1"/>
+    </fixed>
+
+    <fixed name="t_elbow_flex">
+      <joint joint="elbow_flex" coef="1"/>
+    </fixed>
+    <fixed name="t_elbow_ext">
+      <joint joint="elbow_flex" coef="-1"/>
+    </fixed>
+  </tendon>
+
+  <actuator>
+    <motor name="m_shoulder_flex" tendon="t_shoulder_flex" gear="35"/>
+    <motor name="m_shoulder_ext" tendon="t_shoulder_ext" gear="35"/>
+    <motor name="m_elbow_flex" tendon="t_elbow_flex" gear="30"/>
+    <motor name="m_elbow_ext" tendon="t_elbow_ext" gear="30"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="s_shoulder_pos" joint="shoulder_pitch"/>
+    <jointvel name="s_shoulder_vel" joint="shoulder_pitch"/>
+    <jointpos name="s_elbow_pos" joint="elbow_flex"/>
+    <jointvel name="s_elbow_vel" joint="elbow_flex"/>
+
+    <tendonpos name="s_tendon_shoulder_flex" tendon="t_shoulder_flex"/>
+    <tendonpos name="s_tendon_shoulder_ext" tendon="t_shoulder_ext"/>
+    <tendonpos name="s_tendon_elbow_flex" tendon="t_elbow_flex"/>
+    <tendonpos name="s_tendon_elbow_ext" tendon="t_elbow_ext"/>
+
+    <actuatorfrc name="s_act_shoulder_flex" actuator="m_shoulder_flex"/>
+    <actuatorfrc name="s_act_shoulder_ext" actuator="m_shoulder_ext"/>
+    <actuatorfrc name="s_act_elbow_flex" actuator="m_elbow_flex"/>
+    <actuatorfrc name="s_act_elbow_ext" actuator="m_elbow_ext"/>
+  </sensor>
+
+  <keyframe>
+    <key name="home" qpos="0 0" ctrl="0 0 0 0"/>
+  </keyframe>
+</mujoco>

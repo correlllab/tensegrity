@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Upstream mujoco_mpc clone (2.2 GB with build tree).
+# Local changes are captured in mujoco_mpc_tensegrity.patch — see README.md.
+mujoco_mpc/
+
+# Generated experiment outputs (2.5 GB, regenerable via experiments/ scripts)
+experiments/results/
+
+# MuJoCo logs
+MUJOCO_LOG.TXT
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+paper/*.log
+paper/*.out
+.DS_Store

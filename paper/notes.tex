@@ -1,0 +1,172 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\title{Concept Notes: A Tensegrity-Inspired Humanoid with Textile Outer Shell}
+\author{Working notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Thesis}
+A humanoid can be built as a hybrid of:
+\begin{enumerate}[leftmargin=*]
+  \item a tensegrity-inspired internal load-bearing network,
+  \item discontinuous stiff inserts (``bones'') captured by garment pockets,
+  \item tendon transmission routed through textile channels, and
+  \item electric actuation (BLDC + gearbox + spool, and/or linear actuators) located in low-risk body zones.
+\end{enumerate}
+
+This architecture is plausible and technically interesting because it can combine impact tolerance, human-safe compliance, modular repair, and apparel-style manufacturing scalability.
+
+\section*{Why this is compelling}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Safety and compliance}: tensegrity and tendon elasticity reduce peak contact forces.
+  \item \textbf{Weight distribution}: actuator packs can be concentrated near torso/pelvis, while distal limbs remain lightweight.
+  \item \textbf{Manufacturing path}: cut-sew-laminate, reinforcement tapes, and pocketed inserts are familiar to apparel and soft goods production.
+  \item \textbf{Serviceability}: shell panels and tendon modules can be replaced without disassembling a monolithic rigid frame.
+\end{itemize}
+
+\section*{Core architecture proposal}
+\subsection*{1) Structural layers}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Inner skeleton}: sparse compression members and tension network (tensegrity-inspired, not necessarily pure tensegrity at whole-body scale).
+  \item \textbf{Bone inserts}: carbon, glass fiber, or printed stiffeners in indexed garment pockets.
+  \item \textbf{Textile shell}: multilayer technical fabric with:
+  \begin{itemize}[leftmargin=*]
+    \item tendon routing sleeves,
+    \item local abrasion liners,
+    \item anisotropic reinforcement along principal load paths.
+  \end{itemize}
+\end{enumerate}
+
+\subsection*{2) Actuation options}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{BLDC + reduction + spool}:
+  high efficiency and controllability, but requires careful spool geometry and cable management.
+  \item \textbf{Linear actuators}:
+  simple kinematics at selected joints, typically heavier for the same peak force.
+  \item \textbf{Hybrid}:
+  rotary tendon actuation for major joints, short-stroke linear units for stiffness tuning or pretension.
+\end{itemize}
+
+\subsection*{3) Tendon transmission details}
+\begin{itemize}[leftmargin=*]
+  \item Use antagonistic tendon pairs for bidirectional control and stiffness modulation.
+  \item Include inline compliance and pretension adjusters.
+  \item Model friction and hysteresis explicitly (Bowden effects, bend-radius penalties, creep).
+\end{itemize}
+
+\section*{Main technical risks}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Tendon friction/hysteresis}: can dominate precision and bandwidth limits.
+  \item \textbf{Textile fatigue}: seam creep, laminate delamination, and abrasion at routing bends.
+  \item \textbf{Calibration drift}: tension distribution changes over time and with temperature/humidity.
+  \item \textbf{Control complexity}: high-DOF compliant systems need robust estimation and model adaptation.
+\end{enumerate}
+
+\section*{Practical design rules (first prototype)}
+\begin{enumerate}[leftmargin=*]
+  \item Start with \textbf{one limb module} (for example, shoulder-elbow) before full humanoid integration.
+  \item Keep \textbf{actuator modules external and swappable} in revision A.
+  \item Build \textbf{instrumented tendon paths}: tension, displacement, and bend-state sensing.
+  \item Add \textbf{hard end-stops and passive fail-safe postures} for every powered DOF.
+  \item Define a \textbf{fatigue test plan early}: repeated cycles at realistic duty and environmental conditions.
+\end{enumerate}
+
+\section*{Suggested phased roadmap}
+\subsection*{Phase 0: Bench characterization}
+Measure tendon friction loops, spool repeatability, textile channel wear, and stiffness range of one joint module.
+
+\subsection*{Phase 1: Upper-body demonstrator}
+Build a torso + one arm with pocketed inserts and textile shell; validate force output, compliance envelopes, and impact behavior.
+
+\subsection*{Phase 2: Mobility integration}
+Add pelvis and lower-limb modules; evaluate quasi-static gait and fall-tolerant recovery behaviors.
+
+\subsection*{Phase 3: Reliability and manufacturing}
+Transition from hand-built prototypes to reproducible cut-sew-laminate process with QC metrics on preload and tendon routing.
+
+\section*{Positioning against prior work}
+Your concept is not just ``another humanoid'' and not just ``another soft robot.''
+It sits at a valuable intersection:
+\begin{itemize}[leftmargin=*]
+  \item tensegrity-inspired resilience,
+  \item anthropomimetic tendon-driven actuation,
+  \item and textile-first manufacturability.
+\end{itemize}
+
+That intersection is underexplored and could produce both strong research contributions and practical product pathways.
+
+\section*{NSF FRR-oriented preliminary design}
+\subsection*{Working objective}
+Demonstrate a \textbf{textile-structured, tendon-driven, compliant arm module} that can:
+\begin{enumerate}[leftmargin=*]
+  \item regulate endpoint force under disturbances,
+  \item vary apparent joint stiffness through antagonistic co-contraction, and
+  \item survive repeated cyclic loading with bounded performance drift.
+\end{enumerate}
+
+\subsection*{Preliminary module definition (Design A0)}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Kinematics}: 2 rotational DOF (shoulder pitch, elbow flexion).
+  \item \textbf{Structure}: one rigid torso anchor, two compliant limb segments, indexed pockets for stiff inserts.
+  \item \textbf{Transmission}: 2 antagonistic tendon pairs (one pair per DOF).
+  \item \textbf{Actuation}: BLDC + gearbox + spool modules mounted near the torso anchor.
+  \item \textbf{Sensing}: joint position, tendon displacement, tendon tension, motor current.
+  \item \textbf{Safety}: passive end stops, current limits, and low-stiffness startup mode.
+\end{itemize}
+
+\subsection*{FRR-style testable hypotheses}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{H1}: antagonistic co-contraction increases closed-loop disturbance rejection without requiring rigid links.
+  \item \textbf{H2}: textile-integrated routing can maintain repeatable kinematics over useful cycle counts when reinforcement and bend-radius constraints are enforced.
+  \item \textbf{H3}: a reduced-order simulation model can predict stiffness and range-of-motion trends well enough to drive design iterations.
+\end{itemize}
+
+\section*{MuJoCo modeling plan (immediate next step)}
+\subsection*{Modeling scope}
+Start with a reduced model that captures the most important design variables:
+\begin{itemize}[leftmargin=*]
+  \item 2-DOF arm kinematics,
+  \item tendon-driven actuation mapped to each joint,
+  \item damping/inertia/friction abstractions,
+  \item co-contraction commands for variable apparent stiffness.
+\end{itemize}
+
+\subsection*{Minimum simulation outputs}
+\begin{enumerate}[leftmargin=*]
+  \item Range of motion envelopes.
+  \item Step response and settling time at both joints.
+  \item Endpoint displacement under impulse or constant external force.
+  \item Effective stiffness versus co-contraction command.
+\end{enumerate}
+
+\subsection*{Design iteration loop}
+\begin{enumerate}[leftmargin=*]
+  \item Tune masses, damping, and actuator gains for realistic baseline behavior.
+  \item Sweep tendon and control parameters.
+  \item Select top candidate configurations by stability and force-tracking metrics.
+  \item Export candidate parameter set for hardware bench prototype.
+\end{enumerate}
+
+\subsection*{Near-term milestone}
+Within one cycle, deliver:
+\begin{itemize}[leftmargin=*]
+  \item a baseline MuJoCo model of the shoulder-elbow module,
+  \item a scripted experiment set (ROM, disturbance, co-contraction sweep), and
+  \item a parameter table that directly informs the first physical prototype build.
+\end{itemize}
+
+\section*{References in this workspace}
+See:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{../references/related\_work.md}
+  \item \texttt{../references/library.bib}
+\end{itemize}
+
+\end{document}
