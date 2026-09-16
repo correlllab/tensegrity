@@ -413,11 +413,14 @@ the push-recovery bandwidth requirement
 ($f_{\mathrm{bw}}=\frac{1}{2\pi}\sqrt{k_{\mathrm{ser}}/m_{\mathrm{eff}}}$,
 $m_{\mathrm{eff}}=I_rG^2/r^2$), yielding spools where stroke dominates
 (hips, knees, waist) and lever arms where bandwidth dominates (ankles,
-46\,Hz). The resulting \numMotors-motor bill of materials, however,
-\emph{does not meet its own torque specification}: a single loop delivers
-\singleLoopHip\,N\,m at hip pitch against a requirement of 80\,N\,m, and
-Table~\ref{tab:authority} shows the shortfall increasing over the gait.
-The remedy is a larger $r_{\mathrm{eff}}$ rather than additional motors.
+46\,Hz). This analysis also exposes a limitation of the fully hinged variant: its
+\numMotors-motor bill of materials cannot meet the torque specification,
+since a single loop delivers \singleLoopHip\,N\,m at hip pitch against a
+requirement of 80\,N\,m, and Table~\ref{tab:authority} shows the shortfall
+increasing over the gait. Because the limiting quantity is the moment arm
+$r_{\mathrm{eff}}$ rather than the number of motors, the hybrid addresses
+it by retaining bearings at the hips and knees (Sec.~\ref{sec:design})
+rather than by adding actuators.
 
 \section{Evaluation of the Fully Hinged Variant}
 \label{sec:evidence}
