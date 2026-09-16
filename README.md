@@ -147,5 +147,6 @@ CMake and launch `mjpc --task="Hybrid Walk"` for the interactive view.
 AI (Claude Fable 5.1, Anthropic, via Claude Code) was used to support all
 aspects of this work: the model generator, MJPC task, experiment and analysis
 scripts, figures, and manuscript drafting, all to the authors' specification and
-under their direction and review. The paper's Acknowledgment gives the full
-disclosure.
+under their direction and review. Gemini Flash 3.6 (Google) was used to
+produce mock reviews of manuscript drafts. The paper's Acknowledgment gives the
+full disclosure.
