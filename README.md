@@ -61,7 +61,7 @@ inverts.
 
 The 2.4 kN/m development configuration was chosen for the planner, not the
 hardware: it is the stiffest cable the 8 ms planner step integrates stably and it
-plans ~8× faster, which made the several hundred tuning runs tractable. Stiffer
+plans ~8× faster, which made the tuning runs of the design iteration tractable. Stiffer
 cables need proportionally smaller steps (MJPC's 512-knot horizon cap sets the
 0.82 ms floor at 168 kN/m).
 

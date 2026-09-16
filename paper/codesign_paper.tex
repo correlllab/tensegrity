@@ -50,7 +50,7 @@ softer cables transfers across the 20--168\,kN/m stiffness range without
 retuning. Rigidizing the tensegrity joints increases gait speed but
 removes the \jointImpactLo--\jointImpactHi\% impact attenuation measured
 at the ankle. The results indicate that the concept warrants hardware
-development: the machine has less than half the mass of size-matched
+development: the machine has a third to two thirds of the mass of size-matched
 humanoids and is controllable by MPC.
 \end{abstract}
 
@@ -230,8 +230,8 @@ all with a standard MPC approach.
 The final design (Fig.~\ref{fig:overview}) is 1.68\,m from sole to crown
 and \hybridMass\,kg, with 0.40\,m thigh and shank segments (Winter
 anthropometry \cite{winter2009biomechanics}). \emph{The hips and knees are
-bearings}, because they carry the gait's 40--80\,N\,m through large
-excursions: each knee is an alloy-steel clevis pin in a 61802-class bearing
+bearings}, because their torque limits, 40--80\,N\,m, are the largest in the
+machine and are exercised through large excursions: each knee is an alloy-steel clevis pin in a 61802-class bearing
 pair (\hybridKneeHw\,g) and each hip a three-axis gimbal (\hybridHipHw\,g),
 sized at a safety factor of \kneeBearingSF{} against the measured
 \grfStumble\,N stumble reaction. Articulation hardware at the hips and
@@ -317,8 +317,7 @@ analysis assumes it. The hybrid was developed with interface cables at
 the stiffest interface that the 8\,ms planner step integrates stably (mode
 frequency times step 1.84, against a limit of 2), and at this step the
 planner runs approximately $8\times$ faster than at the design point
-(\hybridRt{} versus $\headRt\times$ real time), which made the several
-hundred tuning runs of the design iteration tractable. Once the design was fixed, the walker was rerun with smaller steps at
+(\hybridRt{} versus $\headRt\times$ real time), which made the tuning runs of the design iteration tractable. Once the design was fixed, the walker was rerun with smaller steps at
 the 40\,kN/m design point and across the specified range
 (Table~\ref{tab:stiffwalk}); the joint testbed of Sec.~\ref{sec:jointcell}
 is also simulated at 40\,kN/m. The hinged
@@ -728,8 +727,8 @@ waist axis at a 0.40\,m/s command restores 10\,kg to \payTenRate{}, so the
 constraint is dynamic pitch balance rather than static capacity. At
 40\,kN/m ($n=3$ per mass) the ceiling is unchanged (\stiffPayTwelveRate{}
 at 12\,kg), 2\,kg walks \stiffPayTwoRate, and 5 and 8\,kg fall late
-(\stiffPayFiveRate, \stiffPayEightRate) at 0.28--0.41\,m/s because the
-stiffer walker tracks the speed command more closely; reducing the
+(\stiffPayFiveRate, \stiffPayEightRate) at 0.28--0.41\,m/s, consistent
+with the stiffer walker's closer tracking of the speed command; reducing the
 command to 0.30\,m/s restores 5\,kg to \stiffPayFiveRetuneRate. Payload
 capacity is therefore set by the controller tuning rather than by cable
 stiffness.
@@ -802,8 +801,8 @@ measured effect.
 \textbf{Allocation rule.} Bearings should be placed where the gait's torque requirements
 concentrate, and series-elastic cable interfaces where impacts enter the
 structure. The hips and knees carry the largest, most pose-dependent
-torques and no first impact; the ankles contact the ground first and
-require an order of magnitude less moment; the waist is the marginal case,
+torques and no first impact; the ankles contact the ground first and require substantially less
+moment (roughly half at the 99th percentile); the waist is the marginal case,
 providing torso compliance at a cost in speed, payload and tuning. The rule reflects present-day drives and planners rather than a
 fundamental limit.
 
@@ -846,10 +845,10 @@ eight torque-carrying DoF and tensegrity joints where impacts enter walks
 at \headV\,m/s in \headRate{} trials at the specified cable stiffness,
 with a gait that transfers across the entire 20--168\,kN/m range.
 Rigidizing its tensegrity joints increases speed and removes compliance;
-removing its bearings removes controllability. As a design study, the
+removing its bearings removes planner tractability. As a design study, the
 results indicate that the concept warrants hardware development: the
-machine has less than half the mass of size-matched humanoids and is
-controllable by a predictive planner. The allocation rule and trade-off
+machine has a third to two thirds of the mass of size-matched humanoids
+and is controllable by a predictive planner. The allocation rule and trade-off
 data constitute one iteration of an MPC-in-the-loop design process and
 identify the parameters for the next, namely moment-arm geometry and cable
 stiffness.
