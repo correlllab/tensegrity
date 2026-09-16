@@ -409,7 +409,7 @@ are reported separately.
 \textbf{Walking results, fully hinged variant.} This machine validates the
 pipeline and provides the load traces used for dimensioning: it walks at
 \walkSpeed$\pm$\walkSpeedSd\,m/s in \walkRate{} of ten trials, with a longest run of \longRunM\,m in \longRunS\,s, at
-\realtimeFactor$\times$ real time and a cost of transport of \walkCot. Drives are dimensioned from the tension traces and
+\realtimeFactor$\times$ real time. Drives are dimensioned from the tension traces and
 the push-recovery bandwidth requirement
 ($f_{\mathrm{bw}}=\frac{1}{2\pi}\sqrt{k_{\mathrm{ser}}/m_{\mathrm{eff}}}$,
 $m_{\mathrm{eff}}=I_rG^2/r^2$), yielding spools where stroke dominates
@@ -833,8 +833,7 @@ isolated episodes of at most \headTorqueOverPeakMaxMs\,ms, commands above
 the continuous rating occupy \headTorqueOverContPct\% of the time, and the
 RMS demand, which determines thermal load, is \headMotorRmsNm\,N\,m at the
 motor for the worst joint, \headMotorRmsPct\% of the rating. The sample sizes ($n=3$--10) resolve speed differences but not
-success-rate differences of one or two trials. The cost of transport
-(\walkCot) is 5--15$\times$ that of comparable machines.
+success-rate differences of one or two trials.
 
 \section{Conclusion}
 Within a single design family, a humanoid composed only of tensegrity
