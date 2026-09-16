@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+matplotlib.rcParams["pdf.fonttype"] = 42      # TrueType, not Type 3 (PaperCept requirement)
+matplotlib.rcParams["ps.fonttype"] = 42
 
 ROOT = "/Users/ncorrell/Downloads/tensegrity"
 RES = f"{ROOT}/experiments/results"
