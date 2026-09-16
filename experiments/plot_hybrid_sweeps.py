@@ -39,17 +39,27 @@ def main():
     # achieved crawl speed as open markers so the failure mode is legible
     UNDER = {0.10: 0.017, 0.20: 0.051}
     ax.plot(list(UNDER), list(UNDER.values()), "o", mfc="none",
-            color=C["hyb"], ms=4, mew=1.1, label="upright, undertracks")
-    # fully hinged reference (measured earlier: cmd -> achieved)
+            color=C["hyb"], ms=4, mew=1.1)
+    # fully hinged reference: achieved speed and success rate from the E-suite
+    # (results/hinged_speed_sweep.json, written by make_numbers.py)
     old_cmd = [0.10, 0.20, 0.30, 0.35, 0.40, 0.45]
     old_v = [np.nan, 0.13, 0.21, 0.24, 0.26, 0.29]
+    hinged_rate = None
+    try:
+        _h = json.load(open(f"{RES}/hinged_speed_sweep.json"))
+        old_cmd = sorted(float(k) for k in _h)
+        old_v = [(_h[f"{c:.2f}"]["v"] if _h[f"{c:.2f}"]["v"] is not None else np.nan)
+                 for c in old_cmd]
+        hinged_rate = [_h[f"{c:.2f}"]["ok"] / max(_h[f"{c:.2f}"]["n"], 1) for c in old_cmd]
+    except FileNotFoundError:
+        pass
     ax.plot(old_cmd, old_v, "--s", color=C["old"], ms=3, lw=1.0,
             label="fully hinged (27 DoF)")
     # falls at over-speed commands: mark mean achieved-before-fall
     falls = [(s_, a) for s_, a in zip(sp, A) if a["ok"] == 0 and s_ > 0.25]
     if falls:
         ax.plot([f[0] for f in falls], [0.21 for f in falls], "x",
-                color=C["warn"], ms=5, mew=1.4, label="falls")
+                color=C["warn"], ms=5, mew=1.4)
     ax.plot([0, 0.62], [0, 0.62], ":", color="0.75", lw=1)
     ax2 = ax.twinx()
     for s, a in zip(sp, A):
@@ -57,18 +67,28 @@ def main():
         p = a["ok"] / max(a["n"], 1)
         ax2.errorbar(s, p, yerr=[[max(0, p - lo)], [max(0, hi - p)]],
                      fmt="^", color=C["rate"], ms=3.5, capsize=2, lw=0.9)
-    ax2.plot(sp, [a["ok"] / max(a["n"], 1) for a in A], "-",
-             color=C["rate"], lw=0.9, alpha=0.7)
+    hs_line, = ax2.plot(sp, [a["ok"] / max(a["n"], 1) for a in A], "-^",
+                        color=C["rate"], ms=3.5, lw=0.9, alpha=0.7,
+                        label="success, hybrid")
+    hh_line = None
+    if hinged_rate is not None:
+        hh_line, = ax2.plot(old_cmd, hinged_rate, "--v", color=C["old"], ms=3,
+                            lw=0.9, alpha=0.9, label="success, hinged")
     ax2.set_ylabel("success rate", color=C["rate"])
     ax2.tick_params(axis="y", colors=C["rate"])
-    ax2.set_ylim(-0.05, 1.15)
+    ax2.set_ylim(-0.05, 1.45)               # headroom for the legend
+    ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax2.grid(False)
+    ax.set_ylim(0, 0.8)
+    ax.set_yticks([0, 0.2, 0.4, 0.6])
     ax.set_xlabel("commanded speed [m/s]")
     ax.set_ylabel("achieved speed [m/s]", color=C["hyb"])
     ax.set_title(f"(a) speed envelope, $n={A[0]['n']}$", fontsize=9)
-    ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.84), ncol=1,
-              fontsize=6.2, handletextpad=0.4, labelspacing=0.25,
-              framealpha=0.85)
+    handles = [h for h in ax.get_legend_handles_labels()[0]] + [hs_line] + \
+              ([hh_line] if hh_line is not None else [])
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.01),
+              ncol=2, fontsize=6.2, handletextpad=0.4, labelspacing=0.25,
+              columnspacing=0.8, framealpha=0.9)
 
     # (b) payload
     ax = axs[1]

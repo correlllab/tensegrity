@@ -767,6 +767,12 @@ for s in SPEEDS:
     put(f"spd{key}V", r["v"], "{:.2f}")
 put("spdThirtyRate", f"{base['ok']}/{base['n']}")
 put("spdThirtyV", base["v"], "{:.2f}")
+# hinged speed sweep for Fig. 4a (plot_hybrid_sweeps.py reads this file)
+_hsw = {f"{s:.2f}": agg(f"speed{s:.2f}") for s in SPEEDS}
+_hsw["0.30"] = dict(base)
+json.dump({k: dict(ok=v["ok"], n=v["n"], v=(None if v["v"] != v["v"] else v["v"]))
+           for k, v in _hsw.items()},
+          open(f"{RES}/hinged_speed_sweep.json", "w"), indent=1)
 
 MASSES = [2, 4, 6, 8, 10, 12, 16, 20]
 pay_rows = []
