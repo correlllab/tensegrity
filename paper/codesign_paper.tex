@@ -1,4 +1,9 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[letterpaper, 10pt, conference]{ieeeconf}
+\IEEEoverridecommandlockouts
+\overrideIEEEmargins
+% keep top-placed table headings and figure labels inside the 0.75 in margin
+\addtolength{\topmargin}{4pt}
+\addtolength{\textheight}{-4pt}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb}
@@ -18,8 +23,7 @@
 
 \title{MPC-in-the-Loop Design Evaluation of a Hybrid Tensegrity Humanoid}
 
-\author{\IEEEauthorblockN{Anonymous Author(s)}
-\IEEEauthorblockA{Affiliation withheld for double-blind review}}
+\author{Anonymous Author(s)\\ Affiliation withheld for double-blind review}
 \hypersetup{pdfauthor={},pdftitle={MPC-in-the-Loop Design Evaluation of a Hybrid Tensegrity Humanoid},pdfsubject={},pdfkeywords={}}
 
 \begin{document}
@@ -177,9 +181,7 @@ form-finding \cite{tibert2003form}) are applied without extension.
 human-mimetic skeleton under the same unilateral tension constraint; here
 the tendons constitute the structure itself. Series-elastic actuation
 \cite{pratt1995series,tsagarakis2013coman} reappears as a requirement on
-the tension members, and soft exosuits \cite{quinlivan2017exosuit} show
-that textile load paths carry such forces, motivating an apparel-mounted
-structure as a longer-term goal.
+the tension members.
 
 \textbf{Co-design and MPC.} Morphology and control have been optimized
 jointly by optimal control \cite{ha2018codesign} and reinforcement learning
@@ -250,8 +252,7 @@ these cables act at the cage radius rather than through a $\sim$37\,mm
 moment arm, the same moment requires four to five times less tension, and
 0.165\,kg XM540-class drives replace 0.96\,kg units. Each arm has seven DoF (shoulder gimbal, elbow, three-axis wrist) with
 all drives modeled; during walking only the two swing DoF per arm are
-planned, the others holding position on servo stiffness. The neck is rigid,
-and two 2.5\,kg battery packs are carried on posterior pelvis rails.
+planned, the others holding position on servo stiffness.
 
 Every segment is a Snelson three-strut prism at its form-found
 equilibrium twist: released free-floating in zero gravity, the cell
@@ -334,9 +335,7 @@ model) and a \emph{cable-driven} model (\numActuatable{} tension-only
 actuators). Cables must be tension-only: a MuJoCo tendon with a single
 spring length exerts a compressive force when shortened, so all cables use
 a deadband spring $F=k\max(0,\ell-\ell_0)$ with $\ell_0$ set by the
-prestress fraction and recomputed from the compiled model. Because a cable helixed around a limb has a moment arm of only
-16--25\,mm about the limb axis, the yaw DoF carry coaxial capstan drums of
-35--55\,mm diameter.
+prestress fraction and recomputed from the compiled model.
 
 \textbf{Cable authority.} With tension-only actuation, the achievable
 torque about DoF $j$ is bounded by
@@ -473,6 +472,7 @@ below $0.6\times$ its home height within \collapseT\,s.
 
 \begin{figure}[tb]
 \centering
+\resizebox{0.995\linewidth}{!}{%
 \begin{tikzpicture}[
   x=1cm,y=1cm,
   strut/.style={line width=1.7pt,black!80,line cap=round},
@@ -540,7 +540,7 @@ below $0.6\times$ its home height within \collapseT\,s.
 \node[lbl,anchor=west] at (1.4,-0.35) {\textcolor{orange!95!black}{\rule{4mm}{1pt}} D: $-1$ neighbour (cw)};
 \node[lbl,anchor=west] at (4.35,-0.35) {\textcolor{black!45}{\rule{4mm}{0.35pt}} cell cables};
 \end{scope}
-\end{tikzpicture}
+\end{tikzpicture}}
 \caption{The bearing-free ankle. (a) The three-strut mast of the foot
 extends $0.2H$ into the shank cage; twelve cables in four families of
 three connect the top ring of the mast to the shank. Families A and B
@@ -567,9 +567,7 @@ and no moment authority about some axis, so that tension-only actuators
 cannot oppose a disturbance about that axis. A controllable joint requires
 $t_6>0$. A single cross family wound in one sense cannot provide this;
 adding the counter-wound mirror family closes the wrench set at the same
-cable count, which is the general form of the opposite-handedness rule
-found for the yaw drums and the reason Snelson's towers alternate the
-handedness of successive stages.
+cable count, as in Snelson's towers, whose successive stages alternate handedness.
 With the counter-wound pair, the joint carries its load, admits
 self-stress at \cocontractN\,N per cable (the single-handed set admits
 none), and a passive chain of three such joints stands with less than
@@ -815,8 +813,7 @@ specified 20--168\,kN/m; the speed sweep, joint-count study and ankle
 controls remain at the 2.4\,kN/m development configuration. In hardware, tendon friction and hysteresis will bias the delivered
 tension and cause prestress to drift; the series-elastic element mitigates
 both by converting tension into a displacement measurement, but tension
-sensing and periodic re-tensioning must be provided for, while cable mass
-(\ropeMass\,kg) is negligible. The planner runs at $\headRt\times$ real
+sensing and periodic re-tensioning must be provided for. The planner runs at $\headRt\times$ real
 time at the design point; a shorter horizon on a reduced model, a
 multi-rate scheme with a fast tension loop, or a policy distilled from the
 planner's rollouts would be required to close this gap, none of which is
