@@ -50,7 +50,7 @@ def main():
     if falls:
         ax.plot([f[0] for f in falls], [0.21 for f in falls], "x",
                 color=C["warn"], ms=5, mew=1.4, label="falls")
-    ax.plot([0, 0.62], [0, 0.62], ":", color="0.75", lw=1, label="1:1")
+    ax.plot([0, 0.62], [0, 0.62], ":", color="0.75", lw=1)
     ax2 = ax.twinx()
     for s, a in zip(sp, A):
         lo, hi = wilson(a["ok"], a["n"])
@@ -66,8 +66,9 @@ def main():
     ax.set_xlabel("commanded speed [m/s]")
     ax.set_ylabel("achieved speed [m/s]", color=C["hyb"])
     ax.set_title(f"(a) speed envelope, $n={A[0]['n']}$", fontsize=9)
-    ax.legend(loc="upper left", ncol=2, fontsize=6.2, columnspacing=0.8,
-              handletextpad=0.4, framealpha=0.85)
+    ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.84), ncol=1,
+              fontsize=6.2, handletextpad=0.4, labelspacing=0.25,
+              framealpha=0.85)
 
     # (b) payload
     ax = axs[1]
@@ -98,7 +99,10 @@ def main():
     ax = axs[2]
     for key, col, sty, lab in (
             ("hybrid", C["hyb"], "-o", "hybrid (15 Nm XM540)"),
-            ("hinged", C["old"], "--s", "fully hinged (30 Nm)")):
+            ("hinged", C["old"], "--s", "fully hinged (30 Nm)"),
+            ("hinged_half", C["old"], ":^", "hinged, 15 Nm shoulder")):
+        if key not in e18:
+            continue
         rows = e18[key]
         ax.plot([r["mass"] for r in rows],
                 [1e3 * r["drop_m"] for r in rows],
@@ -114,7 +118,7 @@ def main():
     ax.set_ylabel("hand drop under load [mm]")
     ax.set_ylim(0, 430)
     ax.set_title("(c) static arm carry", fontsize=9)
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper left", fontsize=6.2, handlelength=1.6)
 
     fig.tight_layout()
     fig.savefig(f"{FIG}/sweeps.pdf")

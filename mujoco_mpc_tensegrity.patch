@@ -11810,7 +11810,7 @@ index 0000000..433fe03
 +</mujoco>
 diff --git a/mjpc/tasks/tensegrity/task_hybrid_walk.xml b/mjpc/tasks/tensegrity/task_hybrid_walk.xml
 new file mode 100644
-index 0000000..33fe3ed
+index 0000000..abd2c9d
 --- /dev/null
 +++ b/mjpc/tasks/tensegrity/task_hybrid_walk.xml
 @@ -0,0 +1,53 @@
@@ -11834,7 +11834,7 @@ index 0000000..33fe3ed
 +    <numeric name="residual_Torso" data="1.20 1.00 1.40" />
 +    <numeric name="residual_Speed" data="0.45 -0.5 1.0" />
 +    <numeric name="residual_Cadence" data="0.8 0.5 2.5" />
-+    <numeric name="residual_Step Height" data="0.24 0.0 0.15" />
++    <numeric name="residual_Step Height" data="0.24 0.0 0.30" />
 +    <numeric name="residual_Stance Width" data="0.20 0.10 0.40" />
 +    <numeric name="residual_Sway" data="0.06 0.0 0.12" />
 +  </custom>

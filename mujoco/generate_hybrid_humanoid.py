@@ -13,7 +13,9 @@ Architecture (the split the evidence supports):
                                   bearing) -- compliance exactly where heel
                                   strike arrives
   shoulders (pitch) + elbows      small hinges for counter-swing
-  waist, neck                     welded this iteration
+  waist                           tensegrity joint: free torso on twelve
+                                  counter-wound cables into the pelvis girdle
+  neck                            welded this iteration
 
 Every segment is a prism cage; hip and knee joints carry decorative-but-real
 joint cables (low stiffness) so the load-path story stays visible. Drives are
@@ -76,10 +78,11 @@ JOINT_GEAR = dict(hip_yaw=40, hip_roll=60, hip_pitch=80, knee=80,
 # servo position-hold stiffness for the arm joints the walking planner does
 # not command (an XM430/XM540 holding position IS a stiff spring); the
 # planner drives only shoulder pitch and elbow (arm swing)
-# An XM-class position hold is stiff -- and 6 N m/rad put the spring-held
-# arm DoF at ~1.7 Hz, resonant with the gait cadence, which is what wrecked
-# reliability. 25 N m/rad moves the mode to ~3.6 Hz, out of the gait band,
-# and is closer to a real servo hold.
+# An XM-class position hold is stiff -- a soft 6 N m/rad hold put the
+# spring-held arm DoF near the gait cadence, which is what wrecked
+# reliability; 60 N m/rad moves the spring modes out of the gait band and
+# is closer to a real servo hold. (The whole carry-posed arm's first
+# bench mode is measured by e22_bench.py, not asserted here.)
 K_SERVO, C_SERVO = 60.0, 2.5
 
 # ------------------------------------------------------------------- cables

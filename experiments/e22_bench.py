@@ -77,9 +77,12 @@ def ankle_bench():
     rA = np.mean([abs(mom[i, pitch_dof]) / gear[i] for i in ia])
     rB = np.mean([abs(mom[i, pitch_dof]) / gear[i] for i in ib])
     # bench protocol: raise every A-family cable 100 N above its
-    # co-contraction level (spring scale per cable), foot on a force table
+    # co-contraction level (spring scale per cable), foot on a force table.
+    # moment_per_100N is per 100 N ON EACH of the three A cables (300 N
+    # family total); the per-100-N-of-family-total figure is also emitted.
     m_per_100N = 3.0 * rA * 100.0
     return dict(moment_per_100N=float(m_per_100N),
+                moment_per_100N_family_total=float(rA * 100.0),
                 arm_A_mm=float(1e3 * rA), arm_B_mm=float(1e3 * rB))
 
 
@@ -145,14 +148,64 @@ def leg_bench():
                 T_at_stance=out[0]["peak_ankle_T"])
 
 
+def arm_bench():
+    """First lateral mode of the carry-posed arm: PD-held hinges, servo
+    springs on the passive DoF (the machine's standing convention), a 2 N
+    tap at the hand, 4 s ring-down, dominant FFT frequency of hand z.
+    Repeated with a 2 kg carried mass."""
+    out = {}
+    for load_kg, tag in ((0.0, "unloaded"), (2.0, "loaded_2kg")):
+        m = welded_model()
+        d = mujoco.MjData(m)
+        nj = 12
+        jid = m.actuator_trnid[:nj, 0]
+        qadr, vadr = m.jnt_qposadr[jid], m.jnt_dofadr[jid]
+        gear = m.actuator_gear[:, 0]
+        jn = [mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_JOINT, int(j))
+              for j in jid]
+        mujoco.mj_forward(m, d)
+        q0 = d.qpos[qadr].copy()
+        for k, nm in enumerate(jn):
+            if nm == "shoulder_pitch_l":
+                q0[k] = -0.25
+            if nm == "elbow_l":
+                q0[k] = -1.30
+        hand = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "hand_l")
+
+        def pd(tap):
+            tau = 300.0 * (q0 - d.qpos[qadr]) - 15.0 * d.qvel[vadr]
+            d.ctrl[:nj] = np.clip(tau / gear[:nj], -1, 1)
+            d.ctrl[nj:] = 0.06
+            d.xfrc_applied[hand, 2] = -9.81 * load_kg + tap
+            mujoco.mj_step(m, d)
+
+        for _ in range(int(2.0 / m.opt.timestep)):
+            pd(0.0)
+        for _ in range(int(0.05 / m.opt.timestep)):     # tap
+            pd(2.0)
+        zs = []
+        for _ in range(int(4.0 / m.opt.timestep)):
+            pd(0.0)
+            zs.append(float(d.xpos[hand][2]))
+        z = np.array(zs) - np.mean(zs)
+        f = np.fft.rfftfreq(len(z), m.opt.timestep)
+        P = np.abs(np.fft.rfft(z))
+        band = (f > 0.5) & (f < 30.0)
+        f0 = float(f[band][np.argmax(P[band])])
+        out[tag] = dict(first_mode_hz=f0)
+        print(f"  arm bench [{tag}]: first mode {f0:.1f} Hz", flush=True)
+    return out
+
+
 def main():
     a = ankle_bench()
-    print(f"ankle bench: {a['moment_per_100N']:.1f} N m per 100 N "
-          f"differential (arms A {a['arm_A_mm']:.0f} mm, "
+    print(f"ankle bench: {a['moment_per_100N']:.1f} N m at +100 N on each "
+          f"A cable (arms A {a['arm_A_mm']:.0f} mm, "
           f"B {a['arm_B_mm']:.0f} mm)", flush=True)
     w = waist_bench()
     l = leg_bench()
-    json.dump(dict(ankle=a, waist=w, leg=l),
+    arm = arm_bench()
+    json.dump(dict(ankle=a, waist=w, leg=l, arm=arm),
               open(f"{RES}/e22_bench.json", "w"), indent=1)
     print("E22 ->", f"{RES}/e22_bench.json")
 

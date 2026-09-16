@@ -120,6 +120,16 @@ def main():
     print(f"  {base['fams']}  {base['n']} cables  t3={base['t3']:.3f}  "
           f"t6={base['t6']:.3f}  worst-axis moment {base['moment']:.3f} N m/N")
 
+    # the counter-wound pair the hybrid actually builds: replace the
+    # single-handed E with the mirror family D -- same cable count
+    cw = score(list("ABCD"), geo)
+    cw_ecc = score(list("ABCD"), geometry(ecc=0.03))
+    print("counter-wound replacement (ABCD, same 12 cables):")
+    print(f"  coaxial   t3={cw['t3']:.3f} t6={cw['t6']:.3f} "
+          f"moment {cw['moment']:.3f} N m/N")
+    print(f"  eccentric t3={cw_ecc['t3']:.3f} t6={cw_ecc['t6']:.3f} "
+          f"moment {cw_ecc['moment']:.3f} N m/N")
+
     print("\nsearching cable topologies for wrench closure (coaxial, no "
           "eccentricity)")
     keys = list(FAMILIES)
@@ -156,8 +166,8 @@ def main():
                 s = score(list(best["fams"]), g)
                 print(f"  {ovf:10.2f} {np.rad2deg(dp):7.0f} {s['t3']:6.3f} "
                       f"{s['t6']:6.3f}")
-    json.dump(dict(baseline=base, found=found[:20],
-                   chosen=best), open(OUT, "w"), indent=1)
+    json.dump(dict(baseline=base, counterwound=cw, counterwound_ecc=cw_ecc,
+                   found=found[:20], chosen=best), open(OUT, "w"), indent=1)
     print("\nE15 ->", OUT)
 
 

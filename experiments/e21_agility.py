@@ -92,10 +92,13 @@ def main():
     print("stage B: step height and speed-weight variants on the top configs")
     cfgs = []
     for r in good:
+        # NB suffixes must stay distinct on a case-insensitive filesystem:
+        # an earlier "h"/"H" pair collided in the log filenames, so the
+        # horizon variant silently reused the step-height variant's logs
         for suffix, extra in (("h", dict(step=0.08)),
                               ("w", dict(w_speed=2.0)),
                               ("hw", dict(step=0.08, w_speed=2.0)),
-                              ("H", dict(horizon=0.6))):
+                              ("hz", dict(horizon=0.6))):
             cfgs.append((r["tag"] + suffix, dict(r["cfg"], **extra)))
     B = screen(cfgs, 2)
 

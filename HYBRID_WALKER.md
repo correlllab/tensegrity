@@ -25,15 +25,19 @@ Headless verification:
 
 ## Result
 
+All numbers below are from `experiments/hybrid_baseline_verify.py`
+(`results/hybrid_full.json`, logs kept):
+
 | metric | value |
 |---|---|
 | walk success (16 s trials) | 10/10 full model (7-DoF arms, waist, packs) |
-| speed | 0.185 m/s full model (0.26-0.29 with rigid torso and simple arms) |
-| hot-swap | one 2.5 kg pack pulled: walks 3/3, no retuning |
-| torso attitude on the waist cables | ±2°, 2 cm sag |
-| pelvis height variation | ±1.5 cm |
-| hip/knee motor duty | 9 % mean, 25 % p95 |
-| ankle cable duty | 7 % mean, 250 N peaks |
+| speed | 0.19 m/s full model (0.26-0.29 with rigid torso and simple arms) |
+| one 2.55 kg pack removed (from start) | walks 5/5, no retuning |
+| torso attitude on the waist cables | ±10° roll/pitch, yaw excursions to ~19° |
+| hip/knee motor duty | 12 % mean, p99 command 37 N m |
+| ankle cable duty | 18 % mean, p99 tension 166 N, no saturation |
+| running cost per step | 0.94 actuated vs 1.19 welded ankles |
+| realtime factor | 0.30x (welded variant 0.67x) |
 
 ## Architecture (what the paper's measurements individually recommend)
 
@@ -61,12 +65,13 @@ Headless verification:
 ## The decisive experiments
 
 1. **Passive ankles never walk**: the planner rationally refuses to lift a
-   loaded foot when it has no CoP control. Deterministic fall at t≈2.
-2. **Welded-ankle A/B walks** (0.18 m/s) — proves the task/model/pipeline,
-   isolates the ankle.
-3. **Actuated ankle cables walk at lower cost than welded** — the planner
-   uses the compliance: A-family lifts the hanging foot, B-family holds the
-   toe up, differential steers landing.
+   loaded foot when it has no CoP control. Falls at t≈2.5-3.0 s in every
+   configuration tried (max foot rise 50 mm; 0/8).
+2. **Welded-ankle A/B walks** (10/10 at 0.20 m/s) — proves the
+   task/model/pipeline, isolates the ankle.
+3. **Actuated ankle cables walk at lower cost than welded** (0.94 vs 1.19
+   per step) — the planner uses the compliance: A-family lifts the hanging
+   foot, B-family holds the toe up, differential steers landing.
 
 ## Files
 

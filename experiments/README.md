@@ -11,7 +11,7 @@ tension network zeroed) or variants generated on the fly. Results land in
 | e1_drop.py | drops 0.05-1.0 m, {cables,none}x{held,limp}, 3x prestress | **matched** comparison: cables *raise* peak GRF at every height; neutral when both are servo-held |
 | e2_stiffness.py | endpoint stiffness vs prestress & co-contraction, 0.2 N differential probe | assembly prestress does not modulate stiffness (12-17 N/m); co-contraction does (14 -> 115 N/m) |
 | e3_degradation.py | sever k cables (random, leg-only, adversarial), stand + push x4 directions | all random k<=8 survive; adversarial survives k=4, fails k=8 |
-| e5_authority.py | Eq. (5) over gait poses and over the BOM actuation set | 10/27 DoFs short over the gait with all cables; 17/27 with the 36-motor BOM |
+| e5_authority.py | Eq. (5) over gait poses and over the BOM actuation set | 10/27 DoFs short over the gait with all cables; 13/27 with the 36-motor BOM |
 | e7_strut_sizing.py | axial loads from cable tensions; CFRP tube buckling sizing | struts not buckling-critical in gait; 0.54 kg total |
 | run_batch_extended.py | baseline/distal/speed/payload sweeps, n=10 per point | baseline walks 7/10 at 0.21 m/s; no monotone payload limit to 20 kg |
 | e6_tendon_limited_walk.py | re-plan with joint limits capped at the tendon-achievable envelope | does a gait exist inside what the cables can deliver? |
@@ -23,7 +23,12 @@ tension network zeroed) or variants generated on the fly. Results land in
 | payload_carry.py | static single-arm box carry | 5 kg/arm, motor-limited (cable at 44%) |
 | e15_joint_design.py | cable-topology search for wrench closure | counter-wound cross pair (ABCD) closes coaxial and eccentric joints at the same cable count |
 | e16_drive_sizing.py | drive sizing from joint moments at cage-radius arms | XM540/XM430 class suffices: 2.5 kg vs 12 kg of AK-class drives |
-| hybrid_tune.py / hybrid_verify.py | MJPC Hybrid Walk gait search + n=10 verification | actuated-cable-ankle hybrid walks ~0.17 m/s; passive ankles never lift; welded-ankle A/B walks 0.18 |
+| hybrid_tune.py / hybrid_verify.py | MJPC Hybrid Walk gait search (early model iterations) | superseded by hybrid_baseline_verify.py for every paper number |
+| hybrid_baseline_verify.py | full-model baseline n=10 + welded-ankle, passive-ankle and one-battery controls, with realtime factor, planner cost, duty and torso attitude | the paper's headline hybrid numbers, all from logged runs |
+| e3b_random_multipush.py | random k=8 cuts under the adversary's four-push protocol | de-confounds E3's adversarial result |
+| e21fix_horizon.py | reruns E21's horizon rows (case-insensitive log-name collision had reused the step-height logs) | |
+| e25_longrun.py | 30 s continuous runs of the hinged walker, n=3 | the paper's "longest run" figure |
+| e26_counterwound_chain.py | built ABCD interface: closure, co-contraction authority LP, passive 3-joint chain stand | backs the counter-wound joint claims |
 | make_plots.py, make_numbers.py, walklog.py, paperview.py, view.py, snapshot.py, filmstrip.py, formfind.py | tooling | |
 
 The hybrid walker (hinged hips/knees, tensegrity cable ankles):

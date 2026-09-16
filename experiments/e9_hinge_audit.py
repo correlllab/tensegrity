@@ -187,12 +187,16 @@ def settle(m, seconds=2.0, drop=0.0):
     d = mujoco.MjData(m)
     d.qpos[2] += drop
     mujoco.mj_forward(m, d)
-    z0 = float(d.xpos[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY,
-                                        "pelvis")][2])
-    for _ in range(int(seconds / m.opt.timestep)):
+    pelv = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
+    z0 = float(d.xpos[pelv][2])
+    t_collapse = None              # first time pelvis z < 0.6 z0
+    for i in range(int(seconds / m.opt.timestep)):
         mujoco.mj_step(m, d)
         if not np.all(np.isfinite(d.qpos)):
-            return dict(ok=False, reason="diverged", z0=z0, z=float("nan"))
+            return dict(ok=False, reason="diverged", z0=z0, z=float("nan"),
+                        t_collapse=t_collapse)
+        if t_collapse is None and float(d.xpos[pelv][2]) < 0.6 * z0:
+            t_collapse = (i + 1) * m.opt.timestep
     z = float(d.xpos[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY,
                                        "pelvis")][2])
     # how far did adjacent segments separate / interpenetrate?
@@ -205,7 +209,7 @@ def settle(m, seconds=2.0, drop=0.0):
         ib = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, b)
         drift[f"{a}->{b}"] = float(np.linalg.norm(d.xpos[ib] - d.xpos[ia]))
     return dict(ok=True, z0=z0, z=z, drift=drift,
-                collapsed=bool(z < 0.6 * z0))
+                collapsed=bool(z < 0.6 * z0), t_collapse=t_collapse)
 
 
 def main():

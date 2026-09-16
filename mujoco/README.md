@@ -13,7 +13,7 @@ sizing, motor catalog, and staging.
 - Structure (both models): every segment is a Snelson 3-strut prism cage at a
   form-found 29.8 deg twist, and **every one of the 210 cables begins and ends
   on a strut endpoint** — nothing terminates in mid air (checked mechanically:
-  all 348 cable sites coincide with a strut tip to 0 mm). Blue cables are each
+  all 372 cable sites coincide with a strut tip to 0 mm). Blue cables are each
   segment's own prism cell; white cables cross the joints and are the
   actuators. Load path, compression: strut -> node -> HINGE -> node -> strut;
   the cable network carries tension only and applies the joint moments.

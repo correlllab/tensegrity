@@ -33,11 +33,16 @@ def load_welded(path):
     return mujoco.MjModel.from_xml_string(xml)
 
 
-def run_machine(tag, path, n_hinge):
+def run_machine(tag, path, n_hinge, masses=MASSES, shoulder_scale=1.0):
     os.chdir(MJ)
     out = []
-    for m_kg in MASSES:
+    for m_kg in masses:
         m = load_welded(path)
+        if shoulder_scale != 1.0:
+            for i in range(m.nu):
+                nm = mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_ACTUATOR, i)
+                if nm and nm.startswith("shoulder"):
+                    m.actuator_gear[i, 0] *= shoulder_scale
         d = mujoco.MjData(m)
         jid = m.actuator_trnid[:n_hinge, 0]
         qadr, vadr = m.jnt_qposadr[jid], m.jnt_dofadr[jid]
@@ -83,9 +88,15 @@ def main():
     res = {}
     print("hybrid (XM540 shoulder, 15 Nm)")
     res["hybrid"] = run_machine("hyb", f"{MJ}/humanoid_hybrid.xml", 12)
-    print("fully hinged (30 Nm shoulder)")
+    print("fully hinged (30 Nm shoulder); extended masses to find the "
+          "saturation point")
     res["hinged"] = run_machine("hin", f"{MJ}/humanoid_27dof_tensegrity.xml",
-                                27)
+                                27, masses=MASSES + [10.0, 12.0])
+    print("fully hinged, shoulder drive class halved (15 Nm) -- the "
+          "controlled test for the drive-class sensitivity claim")
+    res["hinged_half"] = run_machine(
+        "hin/2", f"{MJ}/humanoid_27dof_tensegrity.xml", 27,
+        shoulder_scale=0.5)
     for tag, rows in res.items():
         for th in THRESH:
             held = [r["mass"] for r in rows if r["drop_m"] < th and

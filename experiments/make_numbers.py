@@ -61,6 +61,9 @@ put("numTendonTorque", mt.ntendon)
 put("numTendonCable", mc.ntendon)
 put("numActuatable", mc.nu)
 put("numDof", mt.nu)
+HINGED_KG = float(mt.body_mass.sum())
+put("hingedMass", HINGED_KG, "{:.1f}")
+put("hingedKgPerM", HINGED_KG / 1.65, "{:.1f}")
 
 e7 = json.load(open(f"{RES}/e7_strut_sizing.json"))
 put("numStruts", len(e7["struts"]))
@@ -177,9 +180,11 @@ if os.path.exists(f"{RES}/e9_hinge_audit.json"):
     put("wcTotal", len(wc))
     put("wcSix", sum(1 for r in wc if r["t6"] > 1e-6))
     put("wcThree", sum(1 for r in wc if r["t3"] > 1e-6))
-    hf = e9["hinge_free"]
-    put("freeZstart", hf["z0"], "{:.2f}")
-    put("freeZend", hf["z"], "{:.2f}")
+    hfree = e9["hinge_free"]
+    put("freeZstart", hfree["z0"], "{:.2f}")
+    put("freeZend", hfree["z"], "{:.2f}")
+    if hfree.get("t_collapse") is not None:
+        put("collapseT", hfree["t_collapse"], "{:.1f}")
 
 if os.path.exists(f"{RES}/e10_tensegrity_joint.json"):
     e10 = json.load(open(f"{RES}/e10_tensegrity_joint.json"))
@@ -235,7 +240,7 @@ if os.path.exists(f"{RES}/e12_cell_graph.json"):
     if "prestress_strut_load" in e12:
         nl = e12["prestress_strut_load"]["peak_node_load"]
         put("cgNodeLoad", nl)
-        put("cgNodeMargin", 2358.0 / nl, "{:.1f}")
+        put("cgNodeMargin", e7["weakest"]["P_cr"] / nl, "{:.1f}")
 
 if os.path.exists(f"{RES}/e11_physical.json"):
     e11 = json.load(open(f"{RES}/e11_physical.json"))
@@ -258,37 +263,129 @@ if os.path.exists(f"{RES}/member_specs.json"):
     put("bearingMass", ms["m_hinge"], "{:.2f}")
     put("bearingPerDof", ms["bearing_g_per_dof"])
     put("hingeDofCount", ms["n_hinge_dof"])
+    if "knee_bearing_SF" in ms:
+        put("kneeBearingSF", ms["knee_bearing_SF"], "{:.1f}")
+        put("grfStumble", ms["grf_stumble"], "{:.0f}")
+
+# ------------------------------------------------- hybrid model & mass budget
+# every mass below is read from the compiled model or from the generator's
+# component constants -- nothing is asserted here
+sys.path.insert(0, MJ)
+import generate_hybrid_humanoid as gh                   # noqa: E402
+mh = mujoco.MjModel.from_xml_path(f"{MJ}/humanoid_hybrid.xml")
+HYBRID_KG = float(mh.body_mass.sum())
+put("hybridMass", HYBRID_KG, "{:.1f}")
+put("hybridKgPerM", HYBRID_KG / 1.68, "{:.1f}")
+put("hybridDof", mh.nv)
+put("hybridNu", mh.nu)
+knee_hw = gh.M_KNEE_THIGH + gh.M_KNEE_SHANK
+hip_hw = gh.M_HIP_PELVIS + gh.M_HIP_THIGH
+put("hybridKneeHw", 1e3 * knee_hw)
+put("hybridHipHw", 1e3 * hip_hw)
+put("hybridJointHw", 2 * knee_hw + 2 * hip_hw, "{:.1f}")
+_bat = sum(float(mh.body_mass[b]) for b in range(mh.nbody)
+           if (mujoco.mj_id2name(mh, mujoco.mjtObj.mjOBJ_BODY, b) or ""
+               ).startswith("battery"))
+_struct = sum(gh.M_STRUCT[k] * (1 if k in ("pelvis", "torso", "head") else 2)
+              for k in gh.M_STRUCT)
+MB = dict(hip=6 * gh.M_AK70, knee=2 * gh.M_AK70, ankle=6 * gh.M_XM540,
+          waist=2 * gh.M_XM540, arm=2 * (3 * gh.M_XM540 + 4 * gh.M_XM430),
+          shoulderhw=2 * 0.060, artic=2 * knee_hw + 2 * hip_hw,
+          batt=_bat, compute=gh.M_COMPUTE, struct=_struct)
+for k, v in MB.items():
+    put(f"mb{k.capitalize()}", v, "{:.2f}")
+if abs(sum(MB.values()) - HYBRID_KG) > 0.05:
+    print(f"WARNING: mass budget rows sum to {sum(MB.values()):.2f}, "
+          f"model is {HYBRID_KG:.2f}")
 
 # ------------------------------------------------- hybrid walker
-put("hybridMass", 20.1, "{:.1f}")
-put("hybridJointHw", 0.80, "{:.1f}")
-put("hybridKneeHw", 142)
-put("hybridHipHw", 257)
 put("hybridSpeed", 0.17, "{:.2f}")
 put("hybridRate", "---")
-# the full model (tensegrity waist + battery packs) supersedes the earlier
-# welded-torso verification numbers
+# scripted full-model verification (hybrid_baseline_verify.py)
 if os.path.exists(f"{RES}/hybrid_full.json"):
     hf = json.load(open(f"{RES}/hybrid_full.json"))
     put("hybridSpeed", hf["v"], "{:.2f}")
     put("hybridRate", f"{hf['ok']}/{hf['n']}")
+    put("hybridCiLo", 100 * wilson(hf["ok"], hf["n"])[0])
+    if "trials" in hf.get("base", {}):
+        _tv = [t["v"] for t in hf["base"]["trials"] if t["ok"]]
+        put("hybridVmin", min(_tv), "{:.2f}")
+        put("hybridDistMin", 12 * min(_tv), "{:.1f}")   # 3-15 s scoring window
+    # baseline trials that stay upright for the whole 16 s (not just 3-15 s)
+    _bl = sorted(glob.glob(f"{RES}/hybrid_full/log_base_t*.csv"))
+    if _bl:
+        _up = 0
+        for _lg in _bl:
+            _r = np.genfromtxt(_lg, delimiter=",", invalid_raise=False)
+            _r = _r[~np.isnan(_r).any(axis=1)]
+            _up += int(_r[:, 3].min() > 0.65)
+        put("hybridUpright", f"{_up}/{len(_bl)}")
+    # how often the planner's leg-torque command exceeds the drive peak
+    # (AK70-10 24.8 N m through the ~3:1 tendon reduction = 74.4 N m)
+    _logs = sorted(glob.glob(f"{RES}/hybrid_full/log_base_t*.csv"))
+    if _logs and os.path.exists(f"{ROOT}/mujoco/humanoid_hybrid.xml"):
+        _cwd = os.getcwd(); os.chdir(f"{ROOT}/mujoco")
+        _m = mujoco.MjModel.from_xml_path(f"{ROOT}/mujoco/humanoid_hybrid.xml")
+        os.chdir(_cwd)
+        _an = [mujoco.mj_id2name(_m, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(_m.nu)]
+        _leg = [i for i, n_ in enumerate(_an) if n_.startswith(("hip", "knee"))]
+        _g = _m.actuator_gear[:, 0]
+        _all, _ep, _dt = [], [], 0.004
+        for _lg in _logs:
+            _raw = np.genfromtxt(_lg, delimiter=",", invalid_raise=False)
+            _raw = _raw[~np.isnan(_raw).any(axis=1)]
+            _tt = _raw[:, 0]; _w = (_tt >= 3) & (_tt <= 15); _dt = float(np.median(np.diff(_tt)))
+            _c = _raw[_w, 1 + _m.nq + _m.nv:1 + _m.nq + _m.nv + _m.nu]
+            _Nm = np.abs(_c[:, _leg] * _g[_leg]); _all.append(_Nm)
+            for _j in range(_Nm.shape[1]):
+                _k = 0
+                for _o in (_Nm[:, _j] > 74.4):
+                    if _o: _k += 1
+                    elif _k: _ep.append(_k); _k = 0
+                if _k: _ep.append(_k)
+        _A = np.concatenate(_all)
+        put("torqueOverPeakPct", 100 * (_A > 74.4).mean(), "{:.3f}")
+        put("torqueOverContPct", 100 * (_A > 26).mean(), "{:.1f}")
+        put("torqueOverPeakEpisodes", len(_ep))
+        put("torqueOverPeakMaxMs", (max(_ep) if _ep else 0) * _dt * 1e3)
+        put("torqueWalkSeconds", 12 * len(_logs))
+        put("legNmPnnn", np.percentile(_A, 99.9), "{:.0f}")
+    if hf.get("base", {}).get("realtime"):
+        put("hybridRt", hf["base"]["realtime"], "{:.2f}")
+    if hf.get("base", {}).get("cost") is not None:
+        put("hybridCost", hf["base"]["cost"], "{:.2f}")
+    wl = hf.get("welded")
+    if wl:
+        put("weldedRate", f"{wl['ok']}/{wl['n']}")
+        put("weldedV", wl["v"], "{:.2f}")
+        if wl.get("cost") is not None:
+            put("weldedCost", wl["cost"], "{:.2f}")
+    g = hf.get("gait")
+    if g:
+        put("hybridJointDuty", g["duty_leg_pct"], "{:.0f}")
+        put("hybridAnkleDuty", g["duty_ankle_pct"], "{:.0f}")
+        put("hybridAnklePeak", g["ankle_T_p99"], "{:.0f}")
+        put("hybridAnkleSat", 100 * g["ankle_sat_frac"], "{:.2f}")
+        put("hybridLegNmPeak", g["leg_Nm_p99"], "{:.0f}")
+        put("hybridLegNmMax", g["leg_Nm_max"], "{:.0f}")
+        put("torsoRP", g["torso_rp_max"], "{:.0f}")
+        put("torsoYaw", g["torso_yaw_max"], "{:.0f}")
+    pas = hf.get("passive")
+    if pas:
+        put("passiveN", len(pas))
+        put("passiveOk", sum(1 for r in pas if r["ok"]))
+        put("passiveLift", max(r["max_lift_mm"] for r in pas), "{:.0f}")
+    bat = hf.get("battery")
+    if bat:
+        put("batteryRate", f"{bat['ok']}/{bat['n']}")
+        put("batteryV", bat["v"], "{:.2f}")
+        put("batteryKg", hf.get("battery_removed_kg", 0.0), "{:.1f}")
 elif os.path.exists(f"{RES}/hybrid_verify.json"):
     hv = json.load(open(f"{RES}/hybrid_verify.json"))
     pick = hv.get("finals", [None])[0] or hv.get("baseline")
     if pick:
         put("hybridSpeed", pick["v"], "{:.2f}")
         put("hybridRate", f"{pick['ok']}/{pick['n']}")
-# actuator duty in the logged gait
-_h = glob.glob(f"{RES}/hybrid_v/log_base_t0.csv")
-if _h:
-    _raw = np.genfromtxt(_h[0], delimiter=",", invalid_raise=False)
-    _raw = _raw[~np.isnan(_raw).any(axis=1)]
-    _t = _raw[:, 0]
-    _c = _raw[:, 1 + 33 + 30:1 + 33 + 30 + 24]
-    _w = (_t >= 4) & (_t <= 13)
-    put("hybridJointDuty", 100 * np.abs(_c[_w][:, :8]).mean(), "{:.0f}")
-    put("hybridAnkleDuty", 100 * _c[_w][:, 12:].mean(), "{:.0f}")
-    put("hybridAnklePeak", 250 * _c[_w][:, 12:].max(), "{:.0f}")
 
 # ------------------------------------------------- joint-count study (E17)
 if os.path.exists(f"{RES}/e17_joint_count.json"):
@@ -329,7 +426,10 @@ if os.path.exists(f"{RES}/e18_matched_carry.json"):
         h = [r["mass"] for r in rows if r["drop_m"] < th and r["finite"]]
         return max(h) if h else 0.0
 
-    for tag, k in (("Hyb", "hybrid"), ("Hin", "hinged")):
+    for tag, k in (("Hyb", "hybrid"), ("Hin", "hinged"),
+                   ("Half", "hinged_half")):
+        if k not in e18:
+            continue
         put(f"carry{tag}Eight", _maxhold(e18[k], 0.08), "{:.1f}")
         put(f"carry{tag}Twelve", _maxhold(e18[k], 0.12), "{:.1f}")
         put(f"carry{tag}Sixteen", _maxhold(e18[k], 0.16), "{:.1f}")
@@ -337,6 +437,17 @@ if os.path.exists(f"{RES}/e18_matched_carry.json"):
         sl = np.polyfit([r["mass"] for r in pre],
                         [1e3 * r["drop_m"] for r in pre], 1)[0]
         put(f"carry{tag}Slope", sl, "{:.0f}")
+    # shoulder utilisation at the hybrid's first failing mass (12 cm rule)
+    fail = [r for r in e18["hybrid"] if r["drop_m"] >= 0.12 and r["finite"]]
+    if fail:
+        put("carryHybFailUtil", 100 * min(fail, key=lambda r: r["mass"])
+            ["shoulder_util"], "{:.0f}")
+    # does the hinged shoulder actually saturate in the swept range?
+    sat = [r for r in e18["hinged"] if r["shoulder_util"] >= 0.98]
+    put("carryHinSatMass", min(r["mass"] for r in sat) if sat
+        else float("nan"), "{:.0f}")
+    put("carryHinUtilMax", 100 * max(r["shoulder_util"]
+                                     for r in e18["hinged"]), "{:.0f}")
 
 # ------------------------------------------------- E23 payload intervention
 if os.path.exists(f"{RES}/e23_round2.json"):
@@ -358,6 +469,29 @@ if os.path.exists(f"{RES}/e22_bench.json"):
     put("benchLegTTwo", pts[-1]["peak_ankle_T"], "{:.0f}")
     put("benchLegSink", (pts[0]["pelvis_z_mm"] - pts[-1]["pelvis_z_mm"])
         / 2.0, "{:.0f}")
+    if "arm" in e22:
+        put("armFirstMode", e22["arm"]["unloaded"]["first_mode_hz"], "{:.1f}")
+        put("armFirstModeLoaded",
+            e22["arm"]["loaded_2kg"]["first_mode_hz"], "{:.1f}")
+
+# ------------------------------------------------- E25 long run (hinged)
+if os.path.exists(f"{RES}/e25_longrun.json"):
+    e25 = json.load(open(f"{RES}/e25_longrun.json"))
+    put("longRunM", e25["best"]["dist_m"], "{:.1f}")
+    put("longRunS", e25["best"]["upright_s"], "{:.0f}")
+
+# ------------------------------------------------- E26 counter-wound joint
+if os.path.exists(f"{RES}/e26_counterwound_chain.json"):
+    e26 = json.load(open(f"{RES}/e26_counterwound_chain.json"))
+    put("cocontractN", e26["interface"]["cocontraction_N"], "{:.0f}")
+    ch = e26["chain"]
+    put("chainJoints", max(r["n_joints"] for r in ch if r["stands"]))
+    put("chainSag", max(abs(r["sag_mm"]) for r in ch), "{:.0f}")
+
+# ------------------------------------------------- E3b matched-push randoms
+if os.path.exists(f"{RES}/e3b_random_multipush.json"):
+    e3b = json.load(open(f"{RES}/e3b_random_multipush.json"))
+    put("eThreeBRand", f"{e3b['draws_surviving_all']}/{e3b['draws']}")
 
 # ------------------------------------------------- E21/E24 gait retune
 if os.path.exists(f"{RES}/e24_round3.json"):
@@ -400,7 +534,7 @@ if os.path.exists(f"{RES}/e19_stiffness_sensitivity.json"):
 
 # ---------------------------------------------------------------- E1 impacts
 e1 = json.load(open(f"{RES}/e1_drop.json"))
-W = 27.6 * 9.81
+W = HINGED_KG * 9.81
 
 
 def grf(mode, h):
@@ -421,7 +555,6 @@ for h, tag in ((0.10, "Stumble"), (1.00, "Crash")):
 # the number originally reported: passive tensegrity vs SERVO-HELD rigid
 put("eOneMismatched", 100 * (1 - grf("tensegrity-passive", 0.10) /
                              grf("rigid-held", 0.10)))
-put("eOneCrossover", 0.2, "{:.1f}")
 fell = [r for r in e1 if r["mode"] == "tensegrity-passive" and r["fell"]]
 put("eOnePassiveFell", len(fell))
 put("eOnePassiveN", len([r for r in e1 if r["mode"] == "tensegrity-passive"]))
@@ -474,7 +607,7 @@ def agg(tag):
     out = []
     for _, f, pay in rows:
         try:
-            out.append(walklog.metrics(f, total_mass=27.6 + pay))
+            out.append(walklog.metrics(f, total_mass=HINGED_KG + pay))
         except Exception:
             pass
     ok = [r for r in out if r["success"]]
@@ -493,6 +626,129 @@ put("walkSpeedSd", base["sd"], "{:.2f}")
 put("walkCot", base["cot"], "{:.1f}")
 put("walkRate", f"{base['ok']}/{base['n']}")
 put("walkCiLo", 100 * base["ci"][0])
+
+# E28: payload / robustness sweeps at series-elastic stiffness, carry at 40 kN/m,
+# thermal proxy (RMS leg torque over the baseline walk)
+for _mkg, _nm in ((2, "Two"), (5, "Five"), (8, "Eight"), (12, "Twelve")):
+    put(f"stiffPay{_nm}Rate", "---"); put(f"stiffPay{_nm}V", "---")
+put("randRate", "---"); put("randV", "---"); put("randN", 0); put("randMuMin", "---")
+if os.path.exists(f"{RES}/e28_stiff_sweeps.json"):
+    _e28 = json.load(open(f"{RES}/e28_stiff_sweeps.json"))
+    for _mkg, _nm in ((2, "Two"), (5, "Five"), (8, "Eight"), (12, "Twelve")):
+        _k = f"pay_k40_{_mkg:02d}"
+        if _k in _e28 and _e28[_k].get("n"):
+            put(f"stiffPay{_nm}Rate", f"{_e28[_k]['ok']}/{_e28[_k]['n']}")
+            put(f"stiffPay{_nm}V", _e28[_k]["v"], "{:.2f}")
+    put("stiffPayFiveRetuneRate", "---"); put("stiffPayFiveRetuneV", "---")
+    if "pay_k40_speed0.3_05" in _e28 and _e28["pay_k40_speed0.3_05"].get("n"):
+        _q = _e28["pay_k40_speed0.3_05"]
+        put("stiffPayFiveRetuneRate", f"{_q['ok']}/{_q['n']}")
+        put("stiffPayFiveRetuneV", _q["v"], "{:.2f}")
+    if "rand_k20" in _e28 and _e28["rand_k20"].get("n"):
+        _r = _e28["rand_k20"]
+        put("randRate", f"{_r['ok']}/{_r['n']}"); put("randN", _r["n"])
+        put("randV", _r["v"], "{:.2f}")
+        _oks = [t for t in _r["trials"].values() if t["ok"]]
+        if _oks:
+            put("randMuMin", min(t["mu"] for t in _oks), "{:.2f}")
+        _fails = [t for t in _r["trials"].values() if not t["ok"]]
+        put("randFailMu", ", ".join(f"{t['mu']:.2f}" for t in _fails) if _fails else "none")
+if os.path.exists(f"{RES}/e28_carry_k40.json"):
+    _c = json.load(open(f"{RES}/e28_carry_k40.json"))
+    _drop = {r["mass"]: r["drop_m"] for r in _c}
+    for _th, _nm in ((0.08, "Eight"), (0.12, "Twelve"), (0.16, "Sixteen")):
+        _held = [mk for mk, dr in sorted(_drop.items()) if dr < _th]
+        put(f"carryStiff{_nm}", max(_held) if _held else 0, "{:.1f}")
+    _lin = [r for r in _c if r["mass"] <= 3.0]
+    put("carryStiffSlope", 1e3 * np.polyfit([r["mass"] for r in _lin], [r["drop_m"] for r in _lin], 1)[0])
+    put("carryStiffSatMass", min(r["mass"] for r in _c if r["shoulder_util"] >= 0.999), "{:.0f}")
+if os.path.exists(f"{RES}/hybrid_thermal_proxy.json"):
+    _t = json.load(open(f"{RES}/hybrid_thermal_proxy.json"))
+    put("legRmsNm", _t["worst_rms_Nm"], "{:.0f}")
+    put("motorRmsNm", _t["worst_rms_Nm"] / _t["reduction"], "{:.1f}")
+    put("motorRmsPct", 100 * _t["worst_rms_Nm"] / _t["reduction"] / _t["motor_rated_Nm"])
+
+# HEADLINE = the 40 kN/m walker (inside the specified series-elastic band).
+# Gait statistics and drive exceedance/RMS recomputed from its logs.
+for _k in ("headRate", "headUpright", "headV", "headRt", "headCiLo", "headDistMin",
+           "headLegDuty", "headAnkleDuty", "headLegNmPeak", "headAnklePeak", "headTorsoRP",
+           "headTorqueOverPeakPct", "headTorqueOverContPct", "headTorqueOverPeakEpisodes",
+           "headTorqueOverPeakMaxMs", "headTorqueWalkSeconds", "headMotorRmsNm", "headMotorRmsPct"):
+    put(_k, "---")
+_e27p = f"{RES}/e27_walker_stiffness.json"
+_k40m = f"{ROOT}/mujoco_mpc/build/mjpc/tasks/tensegrity/humanoid_e27_k40.xml"
+if os.path.exists(_e27p) and os.path.exists(_k40m):
+    _h = json.load(open(_e27p)).get("k40", {})
+    if _h.get("n"):
+        put("headRate", f"{_h['ok']}/{_h['n']}")
+        _hf = sum(1 for t in _h["trials"].values() if t.get("t_fall"))
+        put("headUpright", f"{_h['n'] - _hf}/{_h['n']}")
+        put("headV", _h["v"], "{:.2f}")
+        put("headRt", _h["realtime"], "{:.3f}")
+        put("headCiLo", 100 * wilson(_h["ok"], _h["n"])[0])
+        put("headDistMin", 12 * min(t["v"] for t in _h["trials"].values() if t["ok"]), "{:.1f}")
+        if _h.get("gait"):
+            put("headLegDuty", _h["gait"]["duty_leg_pct"])
+            put("headAnkleDuty", _h["gait"]["duty_ankle_pct"])
+            put("headLegNmPeak", _h["gait"]["leg_Nm_p99"])
+            put("headAnklePeak", _h["gait"]["ankle_T_p99"])
+            put("headTorsoRP", _h["gait"]["torso_rp_max"])
+    _logs = sorted(glob.glob(f"{RES}/e27_walker_stiffness/log_k40_t*.csv"))
+    if _logs:
+        _cwd = os.getcwd(); os.chdir(f"{ROOT}/mujoco")
+        _m = mujoco.MjModel.from_xml_path(_k40m)
+        os.chdir(_cwd)
+        _an = [mujoco.mj_id2name(_m, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(_m.nu)]
+        _leg = [i for i, n_ in enumerate(_an) if n_.startswith(("hip", "knee"))]
+        _g = _m.actuator_gear[:, 0]
+        _all, _ep, _dt = [], [], 0.0005
+        for _lg in _logs:
+            _raw = np.genfromtxt(_lg, delimiter=",", invalid_raise=False)
+            _raw = _raw[~np.isnan(_raw).any(axis=1)]
+            _tt = _raw[:, 0]; _w = (_tt >= 3) & (_tt <= 15); _dt = float(np.median(np.diff(_tt)))
+            _c = _raw[_w, 1 + _m.nq + _m.nv:1 + _m.nq + _m.nv + _m.nu]
+            _Nm = np.abs(_c[:, _leg] * _g[_leg]); _all.append(_Nm)
+            for _j in range(_Nm.shape[1]):
+                _k = 0
+                for _o in (_Nm[:, _j] > 74.4):
+                    if _o: _k += 1
+                    elif _k: _ep.append(_k); _k = 0
+                if _k: _ep.append(_k)
+        _A = np.concatenate(_all)
+        put("headTorqueOverPeakPct", 100 * (_A > 74.4).mean(), "{:.3f}")
+        put("headTorqueOverContPct", 100 * (_A > 26).mean(), "{:.1f}")
+        put("headTorqueOverPeakEpisodes", len(_ep))
+        put("headTorqueOverPeakMaxMs", (max(_ep) if _ep else 0) * _dt * 1e3, "{:.1f}")
+        put("headTorqueWalkSeconds", 12 * len(_logs))
+        _rms = np.sqrt((_A ** 2).mean(axis=0)).max()
+        put("headMotorRmsNm", _rms / 3.1, "{:.1f}")
+        put("headMotorRmsPct", 100 * _rms / 3.1 / 8.0)
+
+# E27: whole-body walker at series-elastic interface-cable stiffness
+for _tag, _name in (("k20", "Twenty"), ("k40", "Forty"), ("k168", "Stiff"), ("k168_torso1.28", "StiffRetune")):
+    put(f"walkerK{_name}Rate", "---"); put(f"walkerK{_name}V", "---")
+    put(f"walkerK{_name}Rt", "---"); put(f"walkerK{_name}PlanMs", "---")
+    put(f"walkerK{_name}PlantMs", "---"); put(f"walkerK{_name}N", 0)
+if os.path.exists(f"{RES}/e27_walker_stiffness.json"):
+    _e27 = json.load(open(f"{RES}/e27_walker_stiffness.json"))
+    for _tag, _name in (("k20", "Twenty"), ("k40", "Forty"), ("k168", "Stiff"), ("k168_torso1.28", "StiffRetune")):
+        if _tag in _e27 and _e27[_tag].get("n"):
+            _c = _e27[_tag]
+            put(f"walkerK{_name}Rate", f"{_c['ok']}/{_c['n']}")
+            _falls = sum(1 for _t in _c["trials"].values() if _t.get("t_fall"))
+            put(f"walkerK{_name}Falls", _falls)            # any fall within 16 s
+            put(f"walkerK{_name}Upright", f"{_c['n'] - _falls}/{_c['n']}")
+            put(f"walkerK{_name}N", _c["n"])
+            put(f"walkerK{_name}V", _c["v"], "{:.2f}")
+            if _c.get("realtime"):
+                put(f"walkerK{_name}Rt", _c["realtime"], "{:.3f}")
+            put(f"walkerK{_name}PlanMs", _c["plan_dt"] * 1e3, "{:.1f}")
+            put(f"walkerK{_name}PlantMs", _c["plant_dt"] * 1e3, "{:.2f}")
+            if _c.get("gait"):
+                put(f"walkerK{_name}TorsoRP", _c["gait"]["torso_rp_max"], "{:.0f}")
+                put(f"walkerK{_name}AnkleDuty", _c["gait"]["duty_ankle_pct"], "{:.0f}")
+                put(f"walkerK{_name}LegPnn", _c["gait"]["leg_Nm_p99"], "{:.0f}")
+
 put("walkCiHi", 100 * base["ci"][1])
 
 d = agg("distal")

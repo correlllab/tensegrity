@@ -5,130 +5,208 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{cite}
+\usepackage{tikz}
+\usetikzlibrary{calc}
 \usepackage[hidelinks]{hyperref}
 \graphicspath{{figures/}}
 
 \newcommand{\Fmax}{\bar{F}}
-\setlength{\textfloatsep}{9pt plus 2pt minus 4pt}
-\setlength{\dbltextfloatsep}{9pt plus 2pt minus 4pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 4pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 4pt}
 \input{numbers}
 
-\title{MPC-Based Co-Design of a Hybrid Tensegrity Humanoid}
+\title{MPC-in-the-Loop Design Evaluation of a Hybrid Tensegrity Humanoid}
 
-\author{\IEEEauthorblockN{Nikolaus Correll}
-\IEEEauthorblockA{Department of Aerospace and Mechanical Engineering\\
-University of Notre Dame\\
-ncorrell@nd.edu}}
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{Affiliation withheld for double-blind review}}
+\hypersetup{pdfauthor={},pdftitle={MPC-in-the-Loop Design Evaluation of a Hybrid Tensegrity Humanoid},pdfsubject={},pdfkeywords={}}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This paper examines how articulated joints and tensegrity structure should
-be combined in a full-size humanoid robot. Three machines of identical
-anthropometry are constructed in simulation and evaluated under a
-receding-horizon iLQG controller: a pure tensegrity machine, a fully
-hinged 27-DoF tendon-driven machine, and a hybrid of the two. A
-wrench-closure analysis shows that a hinge-free cable joint requires both
-overlapping cages and counter-wound cable families; without the latter
-the cable set has no self-stress state and no balance controller can
-exist. The pure tensegrity machine stands but presents 210 degrees of
-freedom that no available planner stabilizes. The fully hinged machine
-walks, but raises peak ground reaction at every drop height relative to a
-rigid baseline, and its cable network does not meet its own torque
-specification at gait poses. The hybrid places bearings at hips and knees and tensegrity joints at ankles and waist; at 1.68\,m and \hybridMass\,kg it walks at \hybridSpeed\,m/s in \hybridRate{} of trials with \hybridJointHw\,kg of articulation hardware. A joint-count study over
-rigidized variants of the hybrid quantifies the trade-offs: rigidizing
-the tensegrity joints increases gait speed and payload but removes impact
-attenuation ($-27$ to $-32\%$ at the ankle joint, at series-elastic cable
-stiffness) and requires controller retuning, while removing the remaining
-bearings yields no controllable machine. The results are consistent with
-an allocation principle in which bearings serve joints with large,
-pose-varying torque demands and cable interfaces serve joints where
-impact loads enter the structure.
+This paper presents a simulation-based design study of a full-size
+humanoid whose structure is a prestressed tensegrity network of struts and
+cables rather than a rigid skeleton. It addresses which joints of such a
+machine must remain conventional bearings for the robot to be
+controllable. Three simulated machines of identical anthropometry are compared
+under receding-horizon iLQG control: a pure tensegrity machine, a fully
+hinged 27-DoF tendon-driven machine, and a hybrid. A wrench-closure
+analysis shows that a bearing-free cable joint requires both overlapping
+cages and counter-wound cable families to resist disturbances. The pure
+machine stands when anchored but presents \cgDof{} free degrees of
+freedom, for which no controller was attempted. The fully hinged machine
+walks, but its tension network increases peak ground reaction in passive
+drops relative to the same skeleton without cables, and its cable
+transmission cannot deliver the specified joint torques at mid-stride
+poses. The hybrid retains bearings at the hips and knees, where torque
+demands are large and pose-dependent, and uses tensegrity joints at the
+ankles and waist, where impact loads enter the structure. At 1.68\,m and
+\hybridMass\,kg, with cables at the specified series-elastic stiffness,
+it walks at \headV\,m/s in \headRate{} trials with \hybridJointHw\,kg of
+articulation hardware, and a gait developed on a model with $46\times$
+softer cables transfers across the 20--168\,kN/m stiffness range without
+retuning. Rigidizing the tensegrity joints increases gait speed but
+removes the \jointImpactLo--\jointImpactHi\% impact attenuation measured
+at the ankle. The results indicate that the concept warrants hardware
+development: the machine has less than half the mass of size-matched
+humanoids and is controllable by MPC.
 \end{abstract}
+
+
+\section{Introduction}
+Mass is a primary constraint in humanoid design: it determines actuator
+torque and hence motor and battery mass, the energy of unintended
+collisions, and the hazard a human-sized machine poses to people nearby.
+Conventional humanoids, serial chains of rigid links with actuators at the
+joints, concentrate mass distally and couple strength to weight.
+
+Tensegrity structures \cite{fuller1962patent,snelson1965patent} follow a
+different principle: struts are held apart by a network of pre-tensioned
+cables, every member is loaded axially, and stiffness is governed by
+prestress rather than by cross-section. These properties have motivated
+tensegrity landers and rolling robots
+\cite{sabelhaus2015superball,caluwaerts2014design,shah2022tensegrity} and
+tensegrity joints in sub-scale legs and spines
+\cite{jung2018flexural,wen2025knee,mortensen2025leg,ali2025spine}, but not to a walking machine of human size, where their advantages
+cannot be settled by static analysis.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\linewidth,trim=60 20 60 40,clip]{hybrid_overview.png}
+\caption{The hybrid humanoid, front and rear views (1.68\,m,
+\hybridMass\,kg). Each segment is a three-strut prism cage; cables are
+shown in red. The hips and knees are bearings driven by AK70-class motors
+on the pelvis girdle and thigh cuffs. The feet and torso are free bodies
+held only by counter-wound cable interfaces (Fig.~\ref{fig:joint});
+XM540-class tension drives are mounted on the shank rings and torso. Two
+battery packs are carried on posterior pelvis rails.}
+\label{fig:overview}
+\end{figure}
+
+This paper reports one iteration of a design loop in which
+model-predictive control (MPC) is the inner step: a parametric tensegrity
+kinematics is generated, its controllability under tension-only actuation
+is tested, actuators and members are sized from simulated load traces, and
+a receding-horizon iLQG controller
+\cite{li2004ilqr,tassa2012synthesis,howell2022mjpc} is used to balance and
+walk the machine. We refer to this procedure as \emph{MPC-in-the-loop
+design evaluation}; the design space is not searched automatically, and
+each structural change is justified by a measured change in the gait. A
+\emph{fully hinged} 27-DoF tendon-driven machine walked first, but its
+cable transmission fell short of the required torque at
+\authShortGaitBom{} of 27 DoF over the gait (Sec.~\ref{sec:authority})
+and its cable network increased impact loads (Sec.~\ref{sec:evidence}).
+A \emph{pure tensegrity} machine without hinges collapsed until its joints
+were redesigned with overlapping cages and counter-wound cable families
+(Sec.~\ref{sec:jointcell}), and only this bearing-free joint attenuated
+impacts. The \emph{hybrid} combines the two (Sec.~\ref{sec:hybridwalker}),
+and a joint-count study over its rigidized variants quantifies the
+trade-off (Sec.~\ref{sec:jointcount}).
+
+The purpose of the study is to determine whether the concept justifies
+hardware development, i.e., whether a tensegrity humanoid can be realized
+at a fraction of conventional mass while remaining controllable by a
+predictive planner. Both conditions are met (Table~\ref{tab:compare},
+Sec.~\ref{sec:hybridwalker}). The gait was developed with interface
+cables at 2.4\,kN/m, approximately \stiffGapSeries$\times$ softer than the
+specified \kSeriesMin--\kSeriesMax\,kN/m series-elastic element, because
+this is the stiffest cable the planner integrates at a step fast enough
+for design iteration (Sec.~\ref{sec:design}). All headline results are
+obtained at 40\,kN/m, within the specified range; results that remain at
+the \emph{development configuration} are labeled as such, and the
+geometric results are independent of cable stiffness.
+
+The contributions are: (i) a 1.68\,m, \hybridMass\,kg hybrid humanoid,
+specified to tube, rope and drive class, that walks at \headV\,m/s in
+\headRate{} trials under receding-horizon iLQG at the specified cable
+stiffness, compared with 30--80\,kg for built machines of similar stature
+(Table~\ref{tab:compare}); (ii) a bearing-free joint between stacked prism cages and the rule that
+classical theory implies for it: overlap provides force closure, but only
+a counter-wound cable pair provides the strict self-stress
+\cite{calladine1978tensegrity}, equivalently wrench closure
+\cite{bosscher2004wrench,friesen2018joint}, that tension-only actuators
+need to reject disturbances; (iii) a pose-dependent authority bound, the
+per-DoF form of the wrench-feasible workspace \cite{gouttefarde2007wfw},
+applied as a design gate over the whole gait; and (iv) a joint-count study over rigidized variants of one machine,
+yielding measured trade-offs and an allocation rule. To our knowledge, no
+prior work compares bearings against cable interfaces within one legged
+machine. The MPC architecture and the pipeline that regenerates every
+reported quantity from logged runs are supporting infrastructure.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.99\textwidth]{hybrid_strip.png}
-\caption{The hybrid humanoid walking under iLQG in the
-stride-lengthened configuration of Sec.~\ref{sec:hybridwalker}
-(\agilityV\,m/s, \agilityRate{} of trials); frames advance $7/6$ of a
-gait cycle (phase steps a sixth-cycle per frame). Struts are dark, tension members red; the feet and torso are free bodies held only by counter-wound cable interfaces. Arms hold a servo-referenced posture. 1.68\,m, \hybridMass\,kg with both battery packs; see the video attachment.}
+\caption{The hybrid walking under iLQG in the stride-lengthened
+configuration of Sec.~\ref{sec:hybridwalker} (\agilityV\,m/s,
+\agilityRate{} trials). Frames are $7/6$ of a gait cycle apart, so that
+the displayed phase advances by one sixth of a cycle per frame. Struts are
+dark gray and tension members red; the feet and torso are free bodies. The
+arms hold a servo-referenced posture. Development configuration (interface
+cables at 2.4\,kN/m). See the accompanying video.}
 \label{fig:sequence}
 \end{figure*}
 
-\section{Introduction}
-Mass is the binding constraint on humanoid robots. It sets the actuator
-torques, which set the motor mass, which sets the battery mass, which sets the
-mass again; it sets the energy of every unintended collision; and it governs the hazard a machine of human size poses to the people around it. Conventional humanoids
-are chains of rigid links with actuators at the joints, an architecture that
-concentrates mass distally, makes collisions stiff, and couples structural
-strength to structural weight.
-
-Tensegrity structures \cite{fuller1962patent,snelson1965patent} invert this
-logic: disconnected struts float in a network of pre-tensioned cables, every
-member is loaded along its axis, and stiffness is a function of prestress
-rather than of section. These properties have made tensegrity attractive for
-planetary landers and mobile robots
-\cite{sabelhaus2015superball,caluwaerts2014design,shah2022tensegrity},
-but they have not been carried to a walking machine of human size, and
-whether they survive that transition is not something statics can answer.
-
-This paper reports one full iteration of a design loop whose inner step is
-model-predictive control: generate a parametric tensegrity kinematics, test
-its controllability under tension-only actuation, size actuators and members
-from simulated load traces, and ask a receding-horizon iLQG controller
-\cite{li2004ilqr,tassa2012synthesis,howell2022mjpc} to balance and walk it.
-Every design change is justified by whether it improves the gait. Three
-machines of identical anthropometry travel through the paper: \emph{pure
-tensegrity}, \emph{fully hinged}, and the \emph{hybrid} between them
-that the measurements select.
-
-\textbf{Findings.}
-\begin{enumerate}
-  \item At 1.68\,m the hybrid masses \hybridMass\,kg, against 30--80\,kg for size-matched humanoids (Table~\ref{tab:compare}); articulation hardware totals \hybridJointHw\,kg because only eight DoF carry bearings.
-  \item Because the prestressed network is also the transmission, actuators can be mounted proximally at no additional mechanical cost; doing so measurably improves walk success and speed (Sec.~\ref{sec:evidence}).
-  \item Impact attenuation depends on the joint implementation, not on the architecture alone: as built, the tension network \emph{raises} peak ground reaction, while a hinge-free rebuild lowers it by \jointImpactLo--\jointImpactHi\% provided cable stiffness remains series-elastic (Sec.~\ref{sec:jointcell}).
-  \item Prestress does not modulate stiffness at rope modulus, where the geometric stiffness term is \jointGeomElasticRope\% of the elastic one; antagonist co-contraction changes endpoint stiffness by $\stiffCoRatio\times$.
-  \item Pose-dependent torque authority is the limiting constraint on cable joints: \authShortGaitBom{} of 27 DoF fall below their torque requirement mid-stride, which motivates retaining bearings at hips and knees (Secs.~\ref{sec:authority}, \ref{sec:jointcount}).
-\end{enumerate}
-
-\textbf{Contributions.} (i) A 1.68\,m, \hybridMass\,kg \emph{hybrid} humanoid, specified to tube, rope and drive class, walking at \hybridSpeed\,m/s in \hybridRate{} of trials under receding-horizon iLQG (Sec.~\ref{sec:hybridwalker}); (ii) a hinge-free joint geometry --- overlapped cages, counter-wound cable families --- with the result that force closure alone leaves a joint uncontrollable: full wrench closure ($t_6>0$) is required for any balance controller to exist (Sec.~\ref{sec:jointcell}); (iii) a wrench-closure audit and pose-dependent authority bound applied as a design gate over the gait (Sec.~\ref{sec:authority}); (iv) a joint-count study over rigidized variants of one machine, yielding measured trade-offs and an allocation rule (Sec.~\ref{sec:jointcount}); (v) an MPC architecture tracking an analytic gait reference computed inside the cost evaluation, with a pipeline that regenerates every number in this paper from logged runs.
-
-\section{Related Work and Size-Matched Comparison}
+\section{Related Work}
 \label{sec:related}
+\textbf{Tensegrity robotics.} Robotic tensegrity
+\cite{fuller1962patent,snelson1965patent,skelton2009tensegrity} has been
+demonstrated primarily in rolling machines such as SUPERball
+\cite{sabelhaus2015superball,caluwaerts2014design}; see
+\cite{shah2022tensegrity} for a survey. The closest control precedent is
+MPC with inverse-statics tension distribution on tensegrity spines
+\cite{sabelhaus2018spinempc}, on low-DoF, quasi-statically loaded modules.
+The ULTRA Spine \cite{sabelhaus2015ultra} and Laika \cite{sabelhaus2018laika}
+place a tensegrity spine between rigid legs; the present design instead
+places the tensegrity interfaces at the joints through which ground
+impacts enter. Bearing-free tensegrity joints have been built at limb scale: elbows
+and shoulders \cite{lessard2016manipulator}, a 3-DoF joint with wrench
+closure enforced at every equilibrium \cite{friesen2018joint}, knee- and
+hip-inspired flexural joints \cite{jung2018flexural}, a one-third-scale
+rigid--tensegrity biped knee demonstrated in hardware \cite{wen2025knee},
+a leg whose tensegrity joints reduce impacts by about one third
+\cite{mortensen2025leg}, and variable-stiffness and humanoid spines
+\cite{zappetti2020spine,ali2025spine}. None addresses which joints of a
+complete humanoid should be tensegrity and which bearings. Classical results (strict self-stress \cite{calladine1978tensegrity},
+the elastic--geometric stiffness split \cite{guest2006stiffness},
+form-finding \cite{tibert2003form}) are applied without extension.
 
-\textbf{Tensegrity robotics.} From its artistic origins \cite{fuller1962patent,snelson1965patent} and structural analysis \cite{skelton2009tensegrity}, robotic tensegrity has been demonstrated mainly in rolling or crawling machines: NASA's SUPERball \cite{sabelhaus2015superball,caluwaerts2014design}; the field is surveyed in \cite{shah2022tensegrity}. Control approaches, including learned ones, are covered by the survey; MPC with inverse-statics tension distribution on tensegrity spines \cite{sabelhaus2018spinempc} is the closest precedent for our architecture, though the spines are few-DoF modules loaded quasi-statically. Manipulators \cite{lessard2016manipulator}, modular
-cells \cite{zappetti2017modular} and a variable-stiffness spine
-\cite{zappetti2020spine} show limb-like assemblies are feasible;
-form-finding is reviewed in \cite{tibert2003form};
-biotensegrity reads vertebrate joints the same way
-\cite{scarr2014biotensegrity}.
+\textbf{Tendon-driven and compliant humanoids.} Kenshiro \cite{nakanishi2013kenshiro} and Kengoro
+\cite{asano2017kengoro} route about one hundred muscles over a
+human-mimetic skeleton under the same unilateral tension constraint; here
+the tendons constitute the structure itself. Series-elastic actuation
+\cite{pratt1995series,tsagarakis2013coman} reappears as a requirement on
+the tension members, and soft exosuits \cite{quinlivan2017exosuit} show
+that textile load paths carry such forces, motivating an apparel-mounted
+structure as a longer-term goal.
 
-\textbf{Tendon-driven and compliant humanoids.} The JSK musculoskeletal line --- Kenshiro \cite{nakanishi2013kenshiro}, Kengoro \cite{asano2017kengoro} --- routes on the order of a hundred muscles over a human-mimetic skeleton with proximal motors and the same unilateral tension constraint we face. What distinguishes the present design is that the tendons \emph{are} the structure: the network applying joint moments also carries the structural tension, so no separate skeleton exists for the muscles to act on. Joint-level compliance in humanoids has its own lineage
-through series-elastic actuation \cite{pratt1995series,tsagarakis2013coman};
-here series elasticity reappears as a requirement on the tension members
-themselves (Sec.~\ref{sec:design}). Soft exosuits \cite{quinlivan2017exosuit}
-established that textile load paths carry forces of this magnitude,
-motivating our longer-term goal of mounting the structure in standard
-apparel.
-
-\textbf{Co-design.} Morphology and control have been optimized jointly by sensitivity analysis through optimal control \cite{ha2018codesign} and by reinforcement learning over design distributions \cite{schaff2019jointly}. We report one manual iteration of such a loop, with a predictive controller as the inner step; nothing here searches design space.
-
-\textbf{MPC for legged robots.} iLQG synthesizes whole-body humanoid behavior from cost functions \cite{tassa2012synthesis,tassa2014control}, and MuJoCo MPC \cite{howell2022mjpc} provides real-time planners. The gait reference draws on Raibert \cite{raibert1986legged} and the capture point \cite{pratt2006capture}. Actuator selection follows Mini Cheetah's quasi-direct-drive approach \cite{katz2019minicheetah}. Torque budgets are from Winter \cite{winter2009biomechanics}.
+\textbf{Co-design and MPC.} Morphology and control have been optimized
+jointly by optimal control \cite{ha2018codesign} and reinforcement learning
+\cite{schaff2019jointly}; the present work reports one manual iteration
+with a predictive controller as the inner step. iLQG synthesizes whole-body humanoid behavior
+\cite{tassa2012synthesis,tassa2014control}, whole-body MPC has run on
+torque-controlled humanoids \cite{koenemann2015whole,dantec2022whole}, and
+MuJoCo MPC \cite{howell2022mjpc} provides the planners used here. The gait
+reference follows Raibert \cite{raibert1986legged} and the capture point
+\cite{pratt2006capture}; torque budgets follow Winter
+\cite{winter2009biomechanics}.
 
 \begin{table}[tb]
 \centering
-\caption{Humanoids of comparable stature; mass per unit height compares across slightly different statures. Our two rows are simulated mass budgets, not built machines. The hybrid's 46 DoF include the two free bodies of its tensegrity joints, driven by 30 actuators.}
+\caption{Humanoids of comparable stature. The simulated rows are mass
+budgets without wiring, skin or sensors (lower bounds). The hybrid's 46
+DoF comprise the floating base, 22 hinges and three free bodies (two feet,
+torso), driven by 30 actuators.}
 \label{tab:compare}
 \setlength{\tabcolsep}{2.6pt}\footnotesize%
 \begin{tabular}{@{}lccccl@{}}
 \toprule
 robot & m & kg & kg/m & DoF & actuation\\
 \midrule
-\textbf{this work: hybrid (sim)} & 1.68 & \textbf{20.1} & \textbf{12.0} &
+\textbf{this work: hybrid (sim)} & 1.68 & \textbf{\hybridMass} & \hybridKgPerM &
 46 & hinge$+$tensegrity\\
-this work: hinged (sim) & 1.65 & 27.6 & 16.7 & 27 & tendon, hinged\\
+this work: hinged (sim) & 1.65 & \hingedMass & \hingedKgPerM & 27 & tendon, hinged\\
 1X NEO Gamma \cite{onex2025neo} & 1.65 & 30 & 18.2 & --- & tendon, soft shell\\
 HRP-4 \cite{kaneko2011hrp4} & 1.51 & 39 & 25.8 & 34 & rigid, geared\\
 Unitree G1 \cite{unitree2024g1} & 1.32 & 35 & 26.5 & 23 & rigid, quasi-direct\\
@@ -139,136 +217,164 @@ PAL REEM-C \cite{pal2013reemc} & 1.65 & 80 & 48.5 & 44 & rigid, geared\\
 \end{tabular}
 \end{table}
 
-In Table~\ref{tab:compare} the mass spread at fixed stature is nearly threefold --- architecture, not scale, dominates --- and the lightest machines are all tendon-driven with soft shells. The capability gap is equally real: Fourier's GR-1 walks at 1.4\,m/s where the hybrid reaches \hybridSpeed\,m/s in simulation.
+Table~\ref{tab:compare} shows a nearly threefold spread in mass at fixed
+stature, indicating that architecture rather than scale is the dominant
+factor; the lightest built machines are tendon-driven with soft shells.
+The capability gap is equally significant: GR-1 walks at 1.4\,m/s, whereas
+the hybrid reaches \headV\,m/s in simulation. Speed was not an objective
+of this study, which asks only whether the structure can be controlled at
+all with a standard MPC approach.
 
 \section{The Hybrid Design}
 \label{sec:design}
-The final design (Fig.~\ref{fig:overview}) is 1.68\,m sole-to-crown and
-\hybridMass\,kg, with thigh and shank 0.40\,m (Winter anthropometry
-\cite{winter2009biomechanics}) and three joint implementations (Fig.~\ref{fig:joints}). \emph{Hips and knees are bearings} (3-DoF gimbals and clevis pins) because they carry the gait's 40--80\,N\,m through large excursions. Each knee is an alloy-steel clevis pin in a
-61802-class bearing pair (\hybridKneeHw\,g); each hip a three-axis gimbal
-(\hybridHipHw\,g); all sized with safety factor 2.3 against the measured 1.5\,kN stumble reaction. Articulation hardware totals \hybridJointHw\,kg against the
-1.89\,kg of a fully hinged build. \emph{Ankles and waist are tensegrity joints}: each foot is a tri-pad plate (heel and two forefoot
-corners, the insertion geometry of the biological ankle
-\cite{scarr2014biotensegrity}) whose mast overlaps into the shank cage;
-the torso is a free body whose cage nests into the pelvis girdle. Both are held only by the counter-wound cable interfaces of Sec.~\ref{sec:jointcell}: twelve cables each, no bearing, and force and wrench closure by construction. Cables at a hinge-free joint act at the cage radius rather
-than through a $\sim$37\,mm effective arm, so the same moment costs an
-order of magnitude less tension: 0.165\,kg XM540-class drives replace the
-0.96\,kg units a hinged ankle needs. 
-Each arm has seven DoF: a shoulder gimbal, an elbow, and a three-axis wrist, with all drives massed and drawn. While walking, only the two swing DoF per arm are planned; the rest hold position on servo stiffness, modeled explicitly as joint stiffness. The neck is rigid in this iteration: the head cage mounts to the torso on a fixed strut tripod, with no articulation. Two 2.5\,kg battery packs ride posterior pelvis rails below the waist joint.
+The final design (Fig.~\ref{fig:overview}) is 1.68\,m from sole to crown
+and \hybridMass\,kg, with 0.40\,m thigh and shank segments (Winter
+anthropometry \cite{winter2009biomechanics}). \emph{The hips and knees are
+bearings}, because they carry the gait's 40--80\,N\,m through large
+excursions: each knee is an alloy-steel clevis pin in a 61802-class bearing
+pair (\hybridKneeHw\,g) and each hip a three-axis gimbal (\hybridHipHw\,g),
+sized at a safety factor of \kneeBearingSF{} against the measured
+\grfStumble\,N stumble reaction. Articulation hardware at the hips and
+knees totals \hybridJointHw\,kg, and the arm hinges add \mbShoulderhw\,kg
+of shoulder gimbal hardware. AK70-class drives on the girdle and thigh
+cuffs actuate these hinges through tendon loops at a reduction of
+approximately 3:1 (12\,mm spool, $\sim$37\,mm joint radius), as in the
+hinged machine. \emph{The ankles and waist are tensegrity joints.} Each
+foot is a tri-pad plate (heel and two forefoot corners, following the
+insertion geometry of the biological ankle \cite{scarr2014biotensegrity})
+whose mast overlaps into the shank cage, and the torso is a free body
+whose cage nests into the pelvis girdle. Both are held only by the
+counter-wound cable interfaces of Fig.~\ref{fig:joint}, with twelve cables
+each, no bearing, and force and wrench closure by construction. Because
+these cables act at the cage radius rather than through a $\sim$37\,mm
+moment arm, the same moment requires four to five times less tension, and
+0.165\,kg XM540-class drives replace 0.96\,kg units. Each arm has seven DoF (shoulder gimbal, elbow, three-axis wrist) with
+all drives modeled; during walking only the two swing DoF per arm are
+planned, the others holding position on servo stiffness. The neck is rigid,
+and two 2.5\,kg battery packs are carried on posterior pelvis rails.
 
-Every segment is a Snelson 3-strut prism cell at the \emph{form-found} equilibrium twist. Released free-floating in zero gravity, the cell converges to $29.8^\circ\pm0.4^\circ$, and that measured twist, not the textbook $30^\circ$, generates all cages.
-
-Two earlier variants of the same anthropometry bound the design space and
-recur as comparison points: the \emph{fully hinged} 27-DoF machine (every
-joint a bearing, tendon-driven --- the configuration most humanoids use) and
-the \emph{pure tensegrity} machine with no bearings
-(Sec.~\ref{sec:jointcell}). Joint torque limits come from human walking
-moments scaled to robot mass at safety factor $\approx$2 (hip pitch and knee
-80\,N\,m, ankle 70\,N\,m, shoulder 30\,N\,m on the hinged machine, 15\,N\,m
-XM540-class on the hybrid).
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.68\linewidth]{hybrid_overview.png}
-\caption{The hybrid humanoid, front and rear. Every segment is a prism cage; AK70-class hip drives ring the pelvis girdle, battery packs ride posterior rails, XM540-class drives sit on shank rings and torso. Red members are cables: cell cables triangulating each cage, counter-wound joint cables at ankles and waist.}
-\label{fig:overview}
-\end{figure}
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.99\linewidth,trim=0 40 0 0,clip]{hybrid_joints.png}
-\caption{The three joint types, left to right: hip --- three-axis
-gimbal: yaw pivot descending from the girdle, cross block, roll and pitch
-axles; knee --- drive disc on the thigh cuff, clevis lugs and steel
-cross-pin between the cages; ankle --- no bearing: the foot's mast reaches
-into the shank cage and twelve counter-wound cables (red) carry the joint.
-Cell cables are hidden in the first two panels for clarity.}
-\label{fig:joints}
-\end{figure}
-
-\textbf{Member specification.} Since the structural argument for tensegrity rests on the members, each is dimensioned explicitly from the simulated load cases rather than covered by a bulk mass allowance.
-\numStruts{} CFRP tubes, 12--20\,mm outer diameter: the governing axial load is the ground reaction entering a cage through its joint (\strutLoadStumble\,N per strut at a 0.1\,m stumble), not cable tension. Even so, Euler sizing at safety factor 2 puts \emph{every} strut at the minimum manufacturable wall (\strutWall\,mm; worst margin $\strutWorstMargin\times$). The compression network is therefore manufacturability-limited, not load-limited, at \strutTubeMass\,kg of tube plus \strutFittingMass\,kg of fittings. Tendons are 12-strand UHMWPE sized from the larger of the gait's 99th-percentile tension and the loop requirement $\tau_{\max}/r_{\mathrm{eff}}$ (4\,mm legs and waist, 2.5\,mm shoulders, 1\,mm cell cables; worst RMS utilization \ropeUtilRms\%). The rope itself is \ropeMass\,kg, but its
-\numCableEnds{} terminations mass \termMass\,kg and the \nodeCount{} node
-clusters \nodeMass\,kg --- a network of this kind is priced by its
-interface count, not its cable count.
-
-\textbf{Cable stiffness: model versus hardware.} Specified rope runs \kRopeMin--\kRopeMax\,MN/m; the simulation models cables at \kModelMin--\kModelMax\,N/m. A deliberate series-elastic element of \kSeriesMin--\kSeriesMax\,kN/m \cite{pratt1995series} is required for prestress to be practical to set during assembly, and is what the transmission analysis assumes; the model remains $\sim$\stiffGapSeries$\times$ softer than even that element --- the largest modeling gap in this work (Sec.~\ref{sec:discussion}).
+Every segment is a Snelson three-strut prism at its form-found
+equilibrium twist: released free-floating in zero gravity, the cell
+converges to $29.8^\circ\pm0.4^\circ$, consistent with the theoretical
+$30^\circ$ \cite{tibert2003form}. Two earlier variants of the same
+anthropometry bound the design space: the \emph{fully hinged} 27-DoF
+machine, in which every joint is a tendon-driven bearing, and the
+\emph{pure tensegrity} machine without bearings
+(Sec.~\ref{sec:jointcell}). Joint torque limits follow human walking moments scaled to robot mass
+at a safety factor of about 2 (80\,N\,m at hip pitch and knee, 70\,N\,m
+at the ankle, 30\,N\,m at the hinged shoulder, 15\,N\,m XM540-class on the
+hybrid).
 
 \begin{table}[tb]
 \centering
-\caption{Mass budget of the hybrid. Every drive is mounted proximally to the
-joint it serves; the two tensegrity joints carry no bearings.}
+\caption{Mass budget of the hybrid. All drives are mounted proximally, and
+the tensegrity joints carry no bearings.}
 \label{tab:mass}
-\setlength{\tabcolsep}{4pt}%
+\setlength{\tabcolsep}{4pt}\footnotesize%
 \begin{tabular}{@{}lccl@{}}
 \toprule
 item & $n$ & kg & where\\
 \midrule
-hip drives, AK70-class & 6 & 3.1 & pelvis girdle\\
-knee drives, AK70-class & 2 & 1.0 & thigh cuffs\\
-ankle tension drives, XM540 & 6 & 1.0 & shank rings\\
-waist tension drives, XM540 & 6 & 1.0 & torso ring\\
-arm drives, XM540/XM430 & 14 & 1.7 & torso + arm\\
-articulation hardware (gimbals, clevises) & & 0.8 & hips, knees\\
-battery packs, hot-swappable & 2 & 5.0 & pelvis rails\\
-compute + power & & 0.5 & pelvis\\
-structure: cages, cables, feet, masts & & 6.0 & distributed\\
+hip drives, AK70-class & 6 & \mbHip & pelvis girdle\\
+knee drives, AK70-class & 2 & \mbKnee & thigh cuffs\\
+ankle tension drives, XM540 & 6 & \mbAnkle & shank rings\\
+waist tension drives, XM540 (one per family) & 2 & \mbWaist & torso ring\\
+arm drives, XM540/XM430 & 14 & \mbArm & torso + arm\\
+articulation hardware (gimbals, clevises) & & \mbArtic & hips, knees\\
+shoulder gimbal hardware & & \mbShoulderhw & shoulders\\
+battery packs (incl.\ rails), hot-swappable & 2 & \mbBatt & pelvis rails\\
+compute + power & & \mbCompute & pelvis\\
+structure: cages, cables, feet, masts & & \mbStruct & distributed\\
 \midrule
-total & & 20.1 & \\
+total (compiled model) & & \hybridMass & \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Modelling, Authority, and Control}
+\textbf{Member specification.} Each member is dimensioned from the
+simulated load cases rather than covered by a bulk allowance
+(Table~\ref{tab:mass}). The \numStruts{} CFRP tubes (12--20\,mm outer diameter) are governed by
+the ground reaction entering a cage through its joint
+(\strutLoadStumble\,N per strut in a 0.1\,m stumble); Euler sizing at a
+safety factor of 2 nevertheless places every strut at the minimum
+manufacturable wall (\strutWall\,mm, worst margin
+$\strutWorstMargin\times$), so the compression network
+(\strutTubeMass\,kg of tube, \strutFittingMass\,kg of fittings) is limited
+by manufacturability rather than load. Tendons are 12-strand UHMWPE rope of
+1--4\,mm diameter, sized from the larger of the gait's 99th-percentile
+tension and $\tau_{\max}/r_{\mathrm{eff}}$ (worst RMS utilization
+\ropeUtilRms\%). The rope has a mass of \ropeMass\,kg, whereas its
+\numCableEnds{} terminations have a mass of \termMass\,kg and the
+\nodeCount{} node clusters \nodeMass\,kg; the mass of such a network is
+set by its number of interfaces rather than its number of cables.
+
+\textbf{Cable stiffness: model versus hardware.} The specified rope has a
+stiffness of \kRopeMin--\kRopeMax\,MN/m. A deliberate series-elastic
+element of \kSeriesMin--\kSeriesMax\,kN/m \cite{pratt1995series} is
+required so that prestress can be set at assembly, and the transmission
+analysis assumes it. The hybrid was developed with interface cables at
+2.4\,kN/m, the \emph{development configuration}. This value was chosen for the planner rather than the hardware: it is
+the stiffest interface that the 8\,ms planner step integrates stably (mode
+frequency times step 1.84, against a limit of 2), and at this step the
+planner runs approximately $8\times$ faster than at the design point
+(\hybridRt{} versus $\headRt\times$ real time), which made the several
+hundred tuning runs of the design iteration tractable. Once the design was fixed, the walker was rerun with smaller steps at
+the 40\,kN/m design point and across the specified range
+(Table~\ref{tab:stiffwalk}); the joint testbed of Sec.~\ref{sec:jointcell}
+is also simulated at 40\,kN/m. The hinged
+machine's experiments use \kModelMin--\kModelMax\,N/m, with E1--E2 rerun
+at physical stiffness.
+
+\section{Modeling, Authority, and Control}
 \label{sec:authority}
-The machines are modeled in MuJoCo \cite{todorov2012mujoco} by a parametric generator that produces, from one description of the node geometry, a \emph{joint-torque} model (motors
-at the hinges; the planner's model) and a \emph{cable-driven} model
-(\numActuatable{} tension-only actuators). Two implementation points matter beyond standard MuJoCo model files. \emph{Cables must be tension-only}: a MuJoCo tendon
-with a single spring length pushes when short, making every ``cable''
-secretly a strut; all cables therefore use a deadband spring,
-$F=k\max(0,\ell-\ell_0)$ with $\ell_0$ set by the prestress fraction and
-recomputed from the compiled model so wrapped cables carry the intended
-prestress.
+The machines are modeled in MuJoCo \cite{todorov2012mujoco} by a
+parametric generator that produces, from a single description of the node
+geometry, a \emph{joint-torque} model (motors at the hinges; the planner's
+model) and a \emph{cable-driven} model (\numActuatable{} tension-only
+actuators). Cables must be tension-only: a MuJoCo tendon with a single
+spring length exerts a compressive force when shortened, so all cables use
+a deadband spring $F=k\max(0,\ell-\ell_0)$ with $\ell_0$ set by the
+prestress fraction and recomputed from the compiled model. Because a cable helixed around a limb has a moment arm of only
+16--25\,mm about the limb axis, the yaw DoF carry coaxial capstan drums of
+35--55\,mm diameter.
 
-\emph{Long-axis rotations need capstan drums}: a cable helixed
-around a limb has a 16--25\,mm moment arm about the limb axis, so yaw DoF
-carry a coaxial drum (35--55\,mm) that fixes the arm independently of cage
-geometry. Four checks run automatically after every geometry change: all \numEndpoints{}
-cable endpoints coincide with strut tips (no cables ending in mid-air), the
-authority analysis below, a scripted balance test, and the same balance by
-pure tension distribution on the cable model at 250\,Hz.
-
-\textbf{Cable authority.} With tension-only
-actuation the achievable torque about DoF $j$ is bounded by
+\textbf{Cable authority.} With tension-only actuation, the achievable
+torque about DoF $j$ is bounded by
 \begin{equation}
   \tau_j^{+} = \sum_c \max(0, M_{jc})\,\Fmax_c,\qquad
   \tau_j^{-} = \sum_c \min(0, M_{jc})\,\Fmax_c,
   \label{eq:authority}
 \end{equation}
 where $M_{jc}=\partial\ell_c/\partial q_j$ is the moment arm of cable $c$
-about joint $j$ and $\Fmax_c$ its tension limit --- the per-DoF projection of
-the wrench-feasibility condition of the cable-driven parallel robot
-literature \cite{bosscher2004wrench,gouttefarde2007wfw};
-we claim no novelty for the bound, only for applying it to a legged machine as a requirement \emph{over the whole trajectory} rather than at one pose. Used this way it caught three errors:
-hip yaw and wrist had exactly zero authority in one direction because all
-cable families wound with the same handedness (opposite-handed winding is
-required for bidirectional yaw --- a rule that returns, generalized, in
-Sec.~\ref{sec:jointcell}); shoulder roll had $0.15\times$ the required
-torque from a misplaced socket; and ankle cables saturated during push
-recovery until the foot nodes moved to heel/forefoot positions. As a guarantee it is far weaker than the assembly-pose number suggests (Table~\ref{tab:authority}): at assembly, all 27 DoF are bidirectional (worst margin $\authHomeAll\times$); at logged gait poses, \authShortGaitAll{} of 27 fall below their torque limit (hip pitch $\authGaitHip\times$, knee $\authGaitKnee\times$), and the \numDrivenCables{}-cable, \numMotors-motor bill of materials leaves \authShortGaitBom{} of 27 short. The exact
-zeros in Table~\ref{tab:authority} are the capstan drums: wrap disengages
-at some wrist and shoulder angles, and authority there is not merely small
-but absent. Covering
-80\,N\,m at the 1.5\,kN cable limit needs $r_{\mathrm{eff}}\ge\rNeedHip$\,mm;
-the cage offers \rHaveHip\,mm at hip pitch. This shortfall is the quantitative reason the hybrid keeps bearings at hips and knees. The moment arms collapse mid-stride, and adding motors does not help: a second cable of the same family loses its arm at the same poses.
+about joint $j$ and $\Fmax_c$ its tension limit. This is the per-DoF
+projection of the wrench-feasibility condition for cable-driven parallel
+robots \cite{bosscher2004wrench,gouttefarde2007wfw}; no novelty is claimed
+for the bound, only for its application as a requirement over the entire
+trajectory. Applied in this way it revealed three design errors, among them zero
+authority in one direction at the hip yaw and wrist, because all cable
+families shared one handedness (Sec.~\ref{sec:jointcell}). The bound is
+considerably weaker than the assembly-pose value suggests
+(Table~\ref{tab:authority}):
+at assembly all 27 DoF are bidirectional (worst margin
+$\authHomeAll\times$), whereas at logged gait poses \authShortGaitAll{} of
+27 DoF fall below their torque limit (hip pitch $\authGaitHip\times$, knee
+$\authGaitKnee\times$), and the \numDrivenCables{}-cable,
+\numMotors-motor bill of materials leaves \authShortGaitBom{} of 27 short.
+The exact zeros in Table~\ref{tab:authority} correspond to capstan drums
+whose wrap disengages at certain wrist and shoulder angles. Delivering
+80\,N\,m at the leg cables' 1.5\,kN limit requires
+$r_{\mathrm{eff}}\ge\rNeedHip$\,mm, whereas the cage provides
+\rHaveHip\,mm at hip pitch. This shortfall is the quantitative reason for
+retaining bearings at the hips and knees; a second cable of the same
+family loses its moment arm at the same poses.
 
 \begin{table}[tb]
 \centering
-\caption{Cable authority (Eq.~\ref{eq:authority}) on the fully hinged
-variant depends on where it is evaluated and which cables a motor can reach.
-Entries: DoF short of their torque limit, and worst margin over 27 DoF.}
+\caption{Cable authority (Eq.~\ref{eq:authority}) for the fully hinged
+variant: number of DoF short of their torque limit and worst margin, by
+evaluation pose and actuation set.}
 \label{tab:authority}
+\footnotesize
 \begin{tabular}{llcc}
 \toprule
 configuration & actuation set & DoF short & worst margin\\
@@ -281,263 +387,485 @@ gait poses    & \numMotors{} loops & \authShortGaitBom{}/27 & $\authGaitBom\time
 \end{tabular}
 \end{table}
 
-\textbf{Predictive control.} The controller is MJPC's asynchronous iLQG \cite{howell2022mjpc,tassa2012synthesis} with control limits \cite{tassa2014control}: horizon 0.6\,s, planning timestep 20\,ms, plant at 4\,ms. Hand-designed cost terms alone produced only stepping in place; two of those terms actively opposed walking (a pelvis line term forbids the weight shift that unloads a foot; a permanent capture-point term is wrong in single support). The remedy is
-an \emph{analytic gait reference computed inside the cost evaluation}: gait phase is a function of time alone, and the pelvis tracks a lateral sway timed so that weight is over each stance foot just before the other lifts. Stance feet slide back while swing feet return with sinusoidal clearance, half a cycle apart. The swing landing point is biased by center-of-mass velocity error in the manner of Raibert \cite{raibert1986legged} and the capture point \cite{pratt2006capture}; this bias is what makes stepping stabilizing. Foot targets become leg-joint references by analytic flat-foot inverse kinematics, with posture referenced to a bent-knee walk-ready pose.
+\textbf{Predictive control.} The controller is the asynchronous iLQG
+planner of MJPC \cite{howell2022mjpc,tassa2012synthesis} with control
+limits \cite{tassa2014control}; the horizon and planning step are 0.6\,s
+and 20\,ms for the hinged task and 0.42\,s and 8\,ms for the hybrid (set
+by the ankle-cable foot mode), with the plant integrated at 4\,ms.
+Hand-designed cost terms alone produced only stepping in place. The remedy
+is an \emph{analytic gait reference evaluated inside the cost}: gait phase
+is a function of time alone, the pelvis tracks a lateral sway that unloads
+each foot before it lifts, the swing feet follow a sinusoidal clearance
+profile, and the landing point is biased by the center-of-mass velocity
+error following Raibert \cite{raibert1986legged} and the capture point
+\cite{pratt2006capture}; flat-foot inverse kinematics converts foot
+targets into joint references. A trial counts as a walk if the pelvis remains above 0.65\,m and the
+robot travels more than 1\,m between 3 and 15\,s (the hinged machine's
+suite uses pelvis height above 0.55\,m only); upright but stalled trials
+are reported separately.
 
-\textbf{Walking results, fully hinged variant.} This machine validates the pipeline and produces the load traces used for dimensioning: \walkSpeed$\pm$%
-\walkSpeedSd\,m/s in \walkRate{} of ten trials, longest run 6\,m in 29\,s,
-at \realtimeFactor$\times$ real time on a laptop CPU. Cost of transport is \walkCot. Drives are dimensioned from the traces: force bandwidth through series compliance
-$f_{\mathrm{bw}}=\frac{1}{2\pi}\sqrt{k_{\mathrm{ser}}/m_{\mathrm{eff}}}$
-with $m_{\mathrm{eff}}=I_rG^2/r^2$ splits the transmissions by what dominates each joint: spools where stroke dominates (hips, knees, waist), lever arms where bandwidth dominates (ankles, 46\,Hz), and drums where the rotation axis itself is the problem (yaw). The resulting
-\numMotors-motor bill of materials, however, \emph{does not meet its own
-torque specification}: a single loop delivers \singleLoopHip\,N\,m at hip
-pitch against 80 required, and Table~\ref{tab:authority} shows the shortfall
-widening over the gait. The fix is geometric (enlarge
-$r_{\mathrm{eff}}$), not more motors.
+\textbf{Walking results, fully hinged variant.} This machine validates the
+pipeline and provides the load traces used for dimensioning: it walks at
+\walkSpeed$\pm$\walkSpeedSd\,m/s in \walkRate{} of ten trials, with a longest run of \longRunM\,m in \longRunS\,s, at
+\realtimeFactor$\times$ real time and a cost of transport of \walkCot. Drives are dimensioned from the tension traces and
+the push-recovery bandwidth requirement
+($f_{\mathrm{bw}}=\frac{1}{2\pi}\sqrt{k_{\mathrm{ser}}/m_{\mathrm{eff}}}$,
+$m_{\mathrm{eff}}=I_rG^2/r^2$), yielding spools where stroke dominates
+(hips, knees, waist) and lever arms where bandwidth dominates (ankles,
+46\,Hz). The resulting \numMotors-motor bill of materials, however,
+\emph{does not meet its own torque specification}: a single loop delivers
+\singleLoopHip\,N\,m at hip pitch against a requirement of 80\,N\,m, and
+Table~\ref{tab:authority} shows the shortfall increasing over the gait.
+The remedy is a larger $r_{\mathrm{eff}}$ rather than additional motors.
 
-\section{Evidence on the Fully Hinged Variant}
+\section{Evaluation of the Fully Hinged Variant}
 \label{sec:evidence}
-Five experiments run against a \emph{rigid-equivalent baseline} --- the same
-27-DoF model with the tension network removed --- with actuation held
-constant, so only the structural paradigm varies
-(Table~\ref{tab:experiments}).
+Five experiments were performed on the fully hinged variant. E1 and E2
+compare it against a \emph{rigid-equivalent baseline}, the same 27-DoF
+model with the tension network removed and actuation held constant; E3--E5
+examine the cable network itself.
 
-\textbf{E1, impact.} In matched-pair drops of 0.05--1\,m the tension network \emph{raises} peak ground reaction at every height: +\eOneDeltaPassiveStumble\% limp at 0.1\,m, and \physOneLimpTen--\physOneLimpHundred\% at physical cable stiffness. A bearing puts the elastic network in parallel with a stiff path, and impulses take the stiff path. \textbf{E2, stiffness.} Under a \stiffProbe\,mN differential endpoint probe, cables raise lateral stiffness $\stiffCablesRatio\times$ by their presence alone, but assembly prestress swept $0$--$5\times$ moves it only within \stiffPreLo--\stiffPreHi\,N/m: prestress does not modulate stiffness at rope modulus (Sec.~\ref{sec:jointcell} isolates why). Differential tension does --- shoulder co-contraction moves \stiffCoLo$\to$\stiffCoHi\,N/m ($\stiffCoRatio\times$) with no added hardware. \textbf{E3, degradation.}
-All \eThreeSinglesOk/\eThreeSinglesN{} single cable cuts and every random
-loss up to $k=8$ survive standing plus a push; an adversary selecting
-against the authority margin kills at $k=8$. No single cable is structural,
-where one failed gearbox in a rigid robot is one dead joint. \textbf{E4,
-proximal mass.} Moving motor masses to the joints they drive, totals
-identical, degrades walking from \walkRate{} to \distalRate{} and \walkSpeed{} to \distalSpeed\,m/s, quantifying the benefit of proximal mounting under tendon transmission. \textbf{E5, tendon realisability.} Mapping logged walking torques
-through the bounded tension distribution: the network reproduces demanded
-torques exactly for most of the stride (median residual
-$<10^{-3}$\,N\,m) with concentrated failures --- a cable pinned at its
-1.5\,kN limit in \tensSatPct\% of states, leaving up to
-\tensResidTwelve\,N\,m undelivered; the gait asks for \tensNeeded\,N peak
-tension, $1.6\times$ the specified rating. Re-planning \emph{inside} the
-achievable envelope separates topology from actuation: a gait exists for
-the full network (\eSixtendonallRate) but not for the bill of materials
-(\eSixtendonbomRate). The topology can support a gait; the actuation set as
-specified cannot deliver one. Its capability envelope (65\% speed tracking to 0.29\,m/s; trunk payload flat to 20\,kg) appears as the grey references in Fig.~\ref{fig:sweeps}.
+\textbf{E1, impact.} In matched passive drops from 0.05--1\,m, the tension
+network increases peak ground reaction at every height, by
++\eOneDeltaPassiveStumble\% at 0.1\,m and by
+\physOneLimpTen--\physOneLimpHundred\% at physical cable stiffness: a
+bearing places the elastic network in parallel with a stiff load path,
+which carries the impulse. \textbf{E2, stiffness.} Under a \stiffProbe\,mN differential endpoint probe, cables raise
+lateral stiffness by $\stiffCablesRatio\times$, but sweeping assembly
+prestress from $0$ to $5\times$ nominal changes it only within
+\stiffPreLo--\stiffPreHi\,N/m (by \physTwoEngaged\% at physical stiffness
+once slack is taken up), whereas shoulder co-contraction changes it from
+\stiffCoLo{} to \stiffCoHi\,N/m ($\stiffCoRatio\times$) without additional
+hardware.
+\textbf{E3, degradation.} All \eThreeSinglesOk/\eThreeSinglesN{} tested single-cable cuts and all
+random losses of up to $k=8$ cables survive standing plus a push; only an
+adversary selecting against the authority margin causes failure at $k=8$.
+No tested single cable is structurally critical, whereas one failed
+gearbox disables a joint of a rigid robot. \textbf{E4, proximal mass.} Relocating the motor masses to the
+joints they drive, at constant total mass, reduces speed from \walkSpeed{}
+to \distalSpeed\,m/s (success rate \walkRate{} versus \distalRate, within
+sampling uncertainty). \textbf{E5, tendon realizability.} When the logged
+walking torques are mapped through the bounded tension distribution, a
+cable is pinned at its 1.5\,kN limit in \tensSatPct\% of states, leaving
+up to \tensResid\,N\,m undelivered, and the 99th-percentile demand is
+\tensNeeded\,N, $1.6\times$ the rating. Re-planning within the achievable
+envelope, a gait exists for the full network (\eSixtendonallRate) but not
+for the bill of materials (\eSixtendonbomRate): the topology is
+sufficient, the specified actuation set is not.
+
+\section{The Bearing-Free Joint and the Pure Tensegrity Variant}
+\label{sec:jointcell}
+Whether the hinged variant's lack of impact tolerance and
+prestress-tunable stiffness is a property of tensegrity or of its hinges
+is settled by an audit of its joints: every articulated interface
+constrains all three relative translations, and the wrench-closure linear
+program (closure holds if and only if
+$\max\{t: W\lambda=0,\ \lambda\ge t\mathbf{1}\}>0$ for the matrix $W$ of
+unit-tension cable wrenches \cite{bosscher2004wrench,gouttefarde2007wfw})
+finds \wcThree/\wcTotal{} joints able to resist even pure forces by cable
+action alone, since every crossing cable pulls the segments together.
+Without hinges the robot telescopes and collapses, the pelvis falling
+below $0.6\times$ its home height within \collapseT\,s.
+
+\begin{figure}[tb]
+\centering
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  strut/.style={line width=1.7pt,black!80,line cap=round},
+  mast/.style={line width=1.7pt,black!45,line cap=round},
+  cell/.style={line width=0.35pt,black!45},
+  famA/.style={line width=1pt,blue!80!black},
+  famB/.style={line width=1pt,green!55!black},
+  famC/.style={line width=1pt,red!85!black},
+  famD/.style={line width=1pt,orange!95!black},
+  lbl/.style={font=\scriptsize},
+  node/.style={circle,fill=black,inner sep=0pt,minimum size=2.6pt}]
+% ---- (a) elevation: oblique projection X = x + 0.38 y, Y = z + 0.20 y
+\newcommand{\pt}[4]{%
+  \pgfmathsetmacro{\px}{#1*cos(#2)}\pgfmathsetmacro{\py}{#1*sin(#2)}%
+  \coordinate (#4) at ({\px+0.35*\py},{#3+0.30*\py});}
+\begin{scope}
+\foreach \i in {0,1,2} {
+  \pt{1.05}{90+120*\i}{0}{b\i}
+  \pt{1.05}{119.8+120*\i}{2.3}{t\i}
+  \pt{0.62}{160+120*\i}{0.55}{m\i}
+  \pt{1.2}{160+120*\i}{-1.3}{p\i}
+}
+\draw[mast,fill=black!12] (p0)--(p1)--(p2)--cycle;
+\foreach \i/\j in {0/1,1/2,2/0} {\draw[cell] (b\i)--(b\j); \draw[cell] (t\i)--(t\j); \draw[cell] (m\i)--(m\j);}
+\foreach \i in {0,1,2} \draw[cell] (b\i)--(t\i);
+\foreach \i in {0,1,2} {\draw[famB] (m\i)--(t\i);}
+\foreach \i/\j in {0/1,1/2,2/0} \draw[famC] (m\i)--(b\j);
+\foreach \i/\j in {0/2,1/0,2/1} \draw[famD] (m\i)--(b\j);
+\foreach \i in {0,1,2} {\draw[famA] (m\i)--(b\i);}
+\foreach \i/\j in {0/1,1/2,2/0} {\draw[strut] (b\i)--(t\j); \draw[mast] (p\i)--(m\j);}
+\foreach \i in {0,1,2} {\fill[black!70] ($(b\i)+(-0.09,0)$) rectangle ($(b\i)+(0.09,0.3)$);}
+\node[lbl] at (0,2.45) {};
+\foreach \i in {0,1,2} {\node[node] at (b\i) {}; \node[node] at (t\i) {}; \node[node] at (m\i) {};}
+% overlap dimension on the left
+\draw[thin,black!40] (-1.15,0) -- (-1.55,0); \draw[thin,black!40] (-1.05,0.55) -- (-1.55,0.55);
+\draw[<->,thin] (-1.5,0) -- (-1.5,0.55);
+\node[lbl,anchor=east] at (-1.55,0.28) {overlap};
+\node[lbl,anchor=south] at (0.1,2.6) {shank cage (proximal), dark struts};
+\node[lbl,anchor=west] at (1.15,0.75) {mast top ring};
+\node[lbl,anchor=west] at (1.15,0.2) {drives};
+\node[lbl,anchor=west] at (1.25,-0.55) {foot mast,};
+\node[lbl,anchor=west] at (1.25,-0.85) {light struts};
+\node[lbl] at (0,-1.85) {(a) elevation};
+\end{scope}
+% ---- (b) plan view
+\begin{scope}[xshift=4.3cm,yshift=0.45cm]
+\foreach \i in {0,1,2} {
+  \coordinate (B\i) at (90+120*\i:1.05);
+  \coordinate (M\i) at (110+120*\i:0.62);}
+\draw[cell] (B0)--(B1)--(B2)--cycle;
+\draw[cell] (M0)--(M1)--(M2)--cycle;
+\foreach \i/\j in {0/1,1/2,2/0} \draw[famC] (M\i)--(B\j);
+\foreach \i/\j in {0/2,1/0,2/1} \draw[famD] (M\i)--(B\j);
+\foreach \i in {0,1,2} {\draw[famA] (M\i)--(B\i);}
+\foreach \i in {0,1,2} {\node[node] at (B\i) {}; \node[node] at (M\i) {};}
+\draw[->,famC,thin] (0,0) ++(-20:0.3) arc (-20:70:0.3);
+\draw[->,famD,thin] (0,0) ++(200:0.3) arc (200:110:0.3);
+\node[lbl] at (0,-1.4) {(b) plan};
+\end{scope}
+% ---- legend
+\begin{scope}[yshift=-2.35cm]
+\node[lbl,anchor=west] at (-1.7,0) {\textcolor{blue!80!black}{\rule{4mm}{1pt}} A: mast$\to$shank base};
+\node[lbl,anchor=west] at (1.4,0) {\textcolor{green!55!black}{\rule{4mm}{1pt}} B: mast$\to$shank top};
+\node[lbl,anchor=west] at (-1.7,-0.35) {\textcolor{red!85!black}{\rule{4mm}{1pt}} C: $+1$ neighbour (ccw)};
+\node[lbl,anchor=west] at (1.4,-0.35) {\textcolor{orange!95!black}{\rule{4mm}{1pt}} D: $-1$ neighbour (cw)};
+\node[lbl,anchor=west] at (4.35,-0.35) {\textcolor{black!45}{\rule{4mm}{0.35pt}} cell cables};
+\end{scope}
+\end{tikzpicture}
+\caption{The bearing-free ankle. (a) The three-strut mast of the foot
+extends $0.2H$ into the shank cage; twelve cables in four families of
+three connect the top ring of the mast to the shank. Families A and B
+provide force closure (the joint resists both separation and approach);
+C and D are the same cross family wound in opposite senses. (b) In plan
+view, C and D form opposite pinwheels. Either family alone leaves
+$t_6=0$, i.e., no self-stress state and no moment authority about some
+axis; together they close the wrench set at the same cable count. A and B
+are actuated (XM540 on 8\,mm spools, approximately 250\,N); C and D carry
+passive prestress. The waist uses the same interface.}
+\label{fig:joint}
+\end{figure}
+
+\textbf{Force closure requires overlap; wrench closure requires
+counter-winding.} In a tensegrity tower, successive stages overlap: the
+distal ring sits inside the proximal cage, giving the interface both a
+downward and an upward cable family (Fig.~\ref{fig:joint}). On an isolated
+two-cage testbed (fixed proximal cage, three floating distal struts, 1\,kg
+payload), force closure appears at an overlap of $0.1H$, and from
+\jointOverlapFrac$H$ the joint also carries its design load. Force closure alone is insufficient: a margin $t_6=0$ means that the
+cable set has no strict self-stress, the classical existence condition for
+a tensegrity \cite{calladine1978tensegrity}, hence no co-contraction state
+and no moment authority about some axis, so that tension-only actuators
+cannot oppose a disturbance about that axis. A controllable joint requires
+$t_6>0$. A single cross family wound in one sense cannot provide this;
+adding the counter-wound mirror family closes the wrench set at the same
+cable count, which is the general form of the opposite-handedness rule
+found for the yaw drums and the reason Snelson's towers alternate the
+handedness of successive stages.
+With the counter-wound pair, the joint carries its load, admits
+self-stress at \cocontractN\,N per cable (the single-handed set admits
+none), and a passive chain of three such joints stands with less than
+\chainSag\,mm of settling.
+
+\textbf{Impact attenuation at the bearing-free joint.} When the testbed
+(cables at the specified series-elastic 40\,kN/m) is dropped against a
+mass-matched control whose distal cage is rigid and mounted on a ball
+joint, the peak ground reaction falls from \jointImpactPinFive{} to
+\jointImpactCableFive\,N at 0.05\,m, from \jointImpactPinTen{} to
+\jointImpactCableTen\,N at 0.10\,m, and from \jointImpactPinTwenty{} to
+\jointImpactCableTwenty\,N at 0.20\,m, an attenuation of
+\jointImpactLo--\jointImpactHi\% at every height, whereas the hinged
+humanoid showed an increase (E1). Without a bearing, the elastic network is in series with the load
+rather than in parallel with a stiff path \cite{sabelhaus2015superball}.
+The attenuation is due to this series compliance and not to the topology
+alone: at $10\times$ the cable stiffness (400\,kN/m, approaching bare
+rope) the comparison inverts and the cable joint lands \stiffSensTenLo{}
+to \stiffSensTenHi\% harder than the pin joint. Geometry and series
+elasticity are therefore jointly necessary, consistent with bench-scale
+tensegrity legs \cite{mortensen2025leg}.
+\textbf{Prestress-tunable stiffness remains absent}, for a material reason
+that follows from the standard decomposition \cite{guest2006stiffness}:
+the tangent stiffness is the sum of an elastic term of order $EA/L$ and a
+geometric term of order $T/L$, and prestress modulates stiffness only when
+the two are comparable. At the rope modulus of this design, the geometric
+term is \jointGeomElasticRope\% of the elastic term; variable stiffness is
+therefore an actuation cost (co-contraction, E2) rather than an assembly
+parameter.
+
+\textbf{The pure tensegrity machine.} Generating the entire humanoid as a graph of overlapping cells, without
+bearings, yields a structure that stands with its foot cells anchored
+(\cgStruts{} struts, \cgCables{} cables; unloaded limb chains sag by
+approximately \cellChainPer\,mm per cell); the pelvis and torso must be
+rigid strut clusters, and a 22\,kg allowance for motors and batteries
+requires \cgPreNeeded\,N of prestress per cable. No controller was
+attempted for its \cgDof{} free DoF, since the \numActuatable-actuator
+cable-driven hinged model already required a planning iteration every
+4\,ms to stand. This is a limitation of planner tractability rather than
+controllability; every counter-wound joint has $t_6>0$, so the structure is
+controllable in principle.
+
+\section{Walking Performance of the Hybrid}
+\label{sec:hybridwalker}
+The prescription that follows from the preceding sections, bearings where
+torque requirements dominate and tensegrity interfaces where compliance
+dominates, is the hybrid of Sec.~\ref{sec:design}.
+
+\textbf{Gait synthesis (development configuration, 2.4\,kN/m).} The
+controller is the analytic-reference iLQG task with the ankle posture
+terms removed. With passive ankle cables every configuration tested falls
+within three seconds, since without ankle actuation there is no
+center-of-pressure control; welding the feet to the shanks produces
+immediate walking (\weldedRate{} at \weldedV\,m/s). Providing the planner
+with tension actuators on two of the four ankle cable families (twelve
+controls) restores walking at \hybridSpeed\,m/s in \hybridRate{} trials at
+a running cost below that of the welded control (\hybridCost{} versus
+\weldedCost{} per step), one family lifting the swing foot and the other
+pitching the toe. Removing one battery pack (\batteryKg\,kg, asymmetric)
+leaves the gait intact (\batteryRate{} at \batteryV\,m/s).
+
+\textbf{Design point and stiffness range.} The design point is the same
+walker with every ankle and waist cable at the specified 40\,kN/m, run
+with the development controller without retuning. It walks in \headRate{}
+trials at \headV\,m/s (Wilson 95\% lower bound \headCiLo\%; every trial
+advanced at least \headDistMin\,m in the 12\,s window), with hip and knee
+duty of \headLegDuty\%, a 99th-percentile command of
+\headLegNmPeak\,N\,m, ankle duty of \headAnkleDuty\% (\headAnklePeak\,N)
+and torso excursion within $\pm\headTorsoRP^\circ$, at $\headRt\times$
+real time. The walker was also run at 20 and 168\,kN/m, each cable retaining its
+start-pose tension (rest lengths recomputed) and damping ratio. The
+stiffest cable mode rises from 230 to 664, 939 and 1925\,rad/s, so the
+planner and plant steps are reduced from 8 and 4\,ms to keep the product
+of mode frequency and step at or below the development value, while the
+16\,ms planning period and all other settings are unchanged
+(Table~\ref{tab:stiffwalk}); a 0.5\,ms step would exceed the 512-knot
+horizon limit of MJPC, truncating the horizon to 0.26\,s, in which case
+every trial fell. Across the range the development controller walks
+without retuning: \walkerKTwentyRate{} at 20\,kN/m
+(\walkerKTwentyUpright{} upright for the full 16\,s) and
+\walkerKStiffRate{} at 168\,kN/m, where the nearly rigid interfaces
+reduce the speed to \walkerKStiffV\,m/s. Leg-torque demand is unchanged
+(99th percentile \walkerKFortyLegPnn--\walkerKTwentyLegPnn\,N\,m), whereas
+ankle duty decreases from \hybridAnkleDuty\% to \walkerKStiffAnkleDuty\%
+and torso excursion from $\pm\torsoRP^\circ$ to
+$\pm\walkerKStiffTorsoRP^\circ$ between the development configuration
+and 168\,kN/m; the development configuration thus overstates torso
+compliance and understates planning cost
+(\walkerKTwentyRt--\walkerKStiffRt$\times$ real time). \emph{Parameter robustness.} At 20\,kN/m, ten trials with every
+interface cable's stiffness drawn from $\pm30\%$ and its prestress from
+$\pm20\%$, every body mass from $\pm15\%$, and ground friction from
+$\mu\in[0.3,0.9]$ walk in \randRate{} cases at \randV\,m/s, the lowest
+friction walked being \randMuMin. Because planner and plant share the
+perturbed model, this measures the tolerance of the tuning to parameter
+variation rather than robustness to model mismatch.
 
 \begin{table}[tb]
 \centering
-\caption{Experiment summary, all on the fully hinged variant against the
-rigid-equivalent baseline, actuation held constant; walking conditions
-$n=10$.}
-\label{tab:experiments}
-\setlength{\tabcolsep}{3pt}\footnotesize%
-\begin{tabular}{@{}llp{4.6cm}@{}}
+\caption{The hybrid walker with ankle and waist cables across the specified
+series-elastic range under the development controller, $n$ trials each.
+The design point is in bold; 2.4\,kN/m is the development configuration.
+``Walks'' follows the criterion of Sec.~\ref{sec:authority}; ``upright''
+counts trials without a fall in the full 16\,s.}
+\label{tab:stiffwalk}
+\setlength{\tabcolsep}{3.2pt}\footnotesize%
+\begin{tabular}{@{}rcccccc@{}}
 \toprule
-id & property & result\\
+$k$ [kN/m] & steps [ms] & $n$ & walks & upright & m/s & real time\\
 \midrule
-E1 & impact tolerance & network raises peak reaction at every drop height
-(\physOneLimpTen--\physOneLimpHundred\% at physical stiffness)\\
-E2 & stiffness on demand & assembly prestress: no effect
-(\stiffPreLo--\stiffPreHi\,N/m); co-contraction: $\stiffCoRatio\times$\\
-E3 & graceful degradation & all singles and random $k\le8$ cuts survive;
-adversarial $k{=}8$ fails\\
-E4 & proximal mass & distal motors: \distalRate{} vs \walkRate{} walks,
-\distalSpeed{} vs \walkSpeed\,m/s\\
-E5 & tendon realisability & \authShortGaitBom{}/27 DoF short over gait;
-gait exists for full network, not for BOM\\
+2.4 (development) & 8 / 4 & 10 & \hybridRate & \hybridUpright & \hybridSpeed & $\hybridRt\times$\\
+20 & \walkerKTwentyPlanMs{} / \walkerKTwentyPlantMs & \walkerKTwentyN & \walkerKTwentyRate & \walkerKTwentyUpright & \walkerKTwentyV & $\walkerKTwentyRt\times$\\
+\textbf{40 (design point)} & \walkerKFortyPlanMs{} / \walkerKFortyPlantMs & \walkerKFortyN & \textbf{\walkerKFortyRate} & \walkerKFortyUpright & \textbf{\walkerKFortyV} & $\walkerKFortyRt\times$\\
+168 & \walkerKStiffPlanMs{} / \walkerKStiffPlantMs & \walkerKStiffN & \walkerKStiffRate & \walkerKStiffUpright & \walkerKStiffV & $\walkerKStiffRt\times$\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{The Hinge-Free Joint}
-\label{sec:jointcell}
-Is the fully hinged variant's failure to deliver impact tolerance and
-prestress-tunable stiffness a fact about tensegrity, or about its hinges?
-An audit answers the prior question first: that machine's joints \emph{are}
-bearings --- every articulated interface fixes all three relative
-translations, and the wrench-closure LP (closure iff
-$\max\{t: W\lambda=0,\ \lambda\ge t\mathbf{1}\}>0$ for the matrix
-$W$ of unit-tension cable wrenches \cite{bosscher2004wrench,gouttefarde2007wfw})
-reports \wcThree/\wcTotal{} joints able to resist even pure forces by
-cable alone: every crossing cable pulls the segments together, and nothing
-resists approach. Removing the hinges confirms it dynamically --- the robot
-telescopes and collapses within two seconds.
-
-\textbf{Force closure requires overlap; wrench closure requires counter-winding.} In a tensegrity tower, stages \emph{overlap}: the distal ring sits inside the proximal cage, giving the interface a downward as well as an upward cable family. On an isolated two-cage testbed (fixed proximal cage, three floating distal struts, 1\,kg payload), force closure appears from \jointOverlapFrac$H$ of overlap and the joint carries load. Force
-closure is not enough. An earlier version of this analysis read the
-wrench-closure margin $t_6=0$ as benign; controlling the joint exposed the
-error. $t_6=0$ means the cable set has \emph{no self-stress}: no co-contraction state and zero moment authority about some axis. Tension-only actuators can then only add load to an equilibrium, never oppose a disturbance, so no balance controller can exist. A controllable joint needs $t_6>0$, with
-actuators choosing how much moment to exert, including none. The single
-cross family winds one way and cannot do it; adding the \emph{counter-wound mirror family} closes the wrench set at the same cable count. This is the opposite-handedness rule required at the yaw drums, not previously recognized as general. With the counter-wound pair the joint carries load, holds
-$\ge$1.3\,kN of co-contraction authority, and a chain of them stands
-passively.
-
-\textbf{Impact attenuation at the hinge-free joint.} Dropping the testbed
-against a mass-matched control whose distal cage rides a ball joint, peak
-ground reaction falls from \jointImpactPinFive{} to
-\jointImpactCableFive\,N at 0.05\,m, \jointImpactPinTen{} to
-\jointImpactCableTen\,N at 0.10\,m, and \jointImpactPinTwenty{} to
-\jointImpactCableTwenty\,N at 0.20\,m --- attenuation of
-\jointImpactLo--\jointImpactHi\% at every height, where the hinged humanoid
-\emph{raised} it (E1). Remove the bearing and the elastic network is in series with the load rather than parallel to a stiff path, the arrangement the tensegrity-lander results rely on \cite{sabelhaus2015superball}. The attenuation belongs to the series
-compliance that the topology puts into the load path, not to the topology
-alone: repeating the drops at $10\times$ cable stiffness (400\,kN/m,
-toward bare rope) \emph{inverts} the comparison, the cable joint landing
-\stiffSensTenLo{} to \stiffSensTenHi\% harder than the pin joint.
-Hinge-free geometry and series-elastic cables buy impact tolerance
-jointly; neither suffices alone. \textbf{Prestress-tunable stiffness remains absent}, and the mechanism is a materials condition rather than a topology property:
-tangent stiffness is an elastic term $\mathcal{O}(EA/L)$ plus a geometric
-term $\mathcal{O}(T/L)$, and prestress tunes stiffness only when they are
-comparable. At the rope modulus this design specifies the geometric term is
-\jointGeomElasticRope\% of the elastic one (hinge or no hinge); the
-cell-scale demonstrations that motivated the claim used cables three orders
-of magnitude softer. Variable stiffness must be budgeted as an actuation
-cost (co-contraction, E2), not an assembly parameter.
-
-\textbf{Composition into a complete assembly.} Generating the entire machine as a graph of
-overlapping cells --- no bearings, nothing touching --- stands
-(\cgStruts{} struts, \cgCables{} cables; limb chains droop
-$\approx$\cellChainPer\,mm/cell). But junctions cannot be cells (a prism
-hosts two interfaces; a pelvis needs three), so pelvis and torso become
-rigid strut clusters, and carrying the 22\,kg of motors and batteries
-takes \cgPreNeeded\,N of prestress per cable --- an order of magnitude
-beyond the single-joint level, forcing 3\,kN-rated cell cables. The pure machine exists structurally, at a quantified cost; what does not exist is a controller for its \cgDof{} floating DoF (Sec.~\ref{sec:discussion}).
-
-\section{The Hybrid Walker}
-\label{sec:hybridwalker}
-The prescription that emerges --- bearings where torque requirements dominate, tensegrity where compliance dominates --- is the hybrid of Sec.~\ref{sec:design}. This section reports its walking performance and the whole-machine effects of its two tensegrity joints.
-
-\textbf{Gait synthesis.} The controller is the analytic-reference iLQG task with the ankle posture rows deleted. With the ankle cables \emph{passive}, every configuration fails identically: the planner does not lift the swing foot. Without ankle actuation there is no center-of-pressure control, so a foot can be unloaded only by whole-body sway, and lifting a loaded foot would lift the robot. Welding the feet to the shanks walks immediately at 0.18\,m/s, isolating the cause. Giving the
-planner tension actuators on two of the four ankle cable families (twelve
-controls, tension-only) recovers walking at \hybridSpeed\,m/s in
-\hybridRate{} of trials --- at a running cost \emph{below} the welded
-control, because the planner exploits the compliance it now commands: one
-family lifts the hanging foot for swing clearance, the other pitches the
-toe, differential tension steers the landing. With actuated cables the tensegrity joint therefore constitutes the better-performing ankle in this comparison. Actuator utilization confirms the sizing: hip and knee motors average \hybridJointDuty\% of their limits, ankle actuators \hybridAnkleDuty\% with \hybridAnklePeak\,N peaks at foot lift; the 46\,Hz bandwidth demand of the hinged ankle disappears, absorbed by cable compliance. The torso rides the waist cables within $\pm2^\circ$, and pulling one battery mid-stance leaves the gait intact.
-
 \begin{figure*}[tb]
 \centering
 \includegraphics[width=0.98\textwidth]{sweeps.pdf}
-\caption{Capability sweeps on the hybrid; error bars are Wilson 95\%
-intervals on the success rate. (a) Achieved speed and success rate vs.\ commanded speed ($n=6$), fully hinged envelope in grey; 0.10--0.20\,m/s commands are upright but undertracking, not falls. (b) Trunk payload
-carried above the tensegrity waist ($n=10$ to 12\,kg, $n=4$ beyond):
-reliable at 2\,kg, degrading through 8\,kg, gone by 12\,kg for a centerd load, where the hinged machine's rigid trunk was flat to 20\,kg (a placement intervention restores 10\,kg at \payTenRate; see text). (c) Static single-arm carry, matched protocol (pelvis welded, identical pose and gains): hand drop vs.\ box mass, thresholds dotted. The hybrid is sag-limited (\carryHybSlope\,mm/kg; hold moves \carryHybEight$\to$\carryHybSixteen\,kg with the threshold), the hinged machine motor-limited (\carryHinSlope\,mm/kg until its 30\,N\,m shoulder saturates; \carryHinEight$\to$\carryHinSixteen\,kg).}
+\caption{Capability sweeps of the hybrid in the development configuration
+(interface cables at 2.4\,kN/m; results at 40\,kN/m are given in the
+text). Error bars are Wilson 95\% intervals on the success rate. (a)
+Achieved speed and success rate versus commanded speed ($n=6$); fully
+hinged envelope in gray, 1:1 line dotted; commands of 0.10--0.20\,m/s
+produce upright undertracking, not falls. (b) Trunk payload above the
+tensegrity waist ($n=10$ up to 12\,kg, $n=4$ beyond); the rigid trunk of
+the hinged machine was unaffected up to 20\,kg (own success criterion). (c)
+Static single-arm carry under a common protocol (pelvis welded, identical
+pose, driven hinges PD-held): hand drop versus box mass, thresholds dotted;
+the hybrid is sag-limited (\carryHybSlope\,mm/kg), the hinged machine
+motor-limited (\carryHinSlope\,mm/kg until its 30\,N\,m shoulder
+saturates), and halving that shoulder class (dotted) changes the hinged
+carry only marginally.}
 \label{fig:sweeps}
 \end{figure*}
 
-\textbf{Capability envelope} (Fig.~\ref{fig:sweeps}). \emph{Speed:} the hybrid has a reliable command band rather than a smooth degradation: \hsSpdThirtyRate{} at a commanded 0.30\,m/s (\hsSpdThirtyV\,m/s achieved), \hsSpdFortyFiveRate{} at 0.45 (\hsSpdFortyFiveV), and falls in every trial at 0.60. Below the band it does not fall but undertracks (0.02--0.05\,m/s at 0.10--0.20 commanded): the sway-and-step reference has a minimum viable tempo. Gait-parameter retuning then extends the band. Lengthening the stride (cadence 1.1$\to$0.8\,Hz at the same command) and raising the swing-height reference to 0.24\,m with doubled cartesian tracking weight reaches \agilityV\,m/s at \agilityRate{}, with measured swing clearance of \gaitClr\,mm --- the configuration of Fig.~\ref{fig:sequence}. The swing-height reference must be commanded at roughly three times the desired clearance: clearance tracks the reference (11, 18, \gaitClr\,mm at references of 0.08, 0.16, 0.24\,m) while extending the planning horizon has no effect. Raising the speed command to 0.55 at the original cadence reaches \agilityFastV\,m/s at only \agilityFastRate. The remaining panels of Fig.~\ref{fig:sweeps} are measured at the pre-retune configuration. Tracking is the larger difference,
-$\approx$42\% of command against the hinged 65\%: part of every push-off is stored in the elastic network rather than delivered to the ground, a speed cost of compliance that Sec.~\ref{sec:jointcount} measures joint by joint. \emph{Trunk payload:}
-boxes on the torso ride \emph{above} the tensegrity waist, so every added
-kilogram loads the twelve waist cables. The envelope is correspondingly
-smaller: \hsPayTwoRate{} at 2\,kg (speed within noise of unloaded),
-\hsPayFiveRate{} at 5, \hsPayEightRate{} at 8, \hsPayTwelveRate{} at
-12\,kg --- against flat-to-20\,kg on the rigid trunk. At 12\,kg every trial falls within the first strides, seven of ten \emph{backward} --- the loaded waist pitches the trunk aft faster than the planner corrects within its horizon. The hinged machine's payload was tendon-limited at the leg; the hybrid's is limited by pitch stability at the compliant waist. An intervention study at 10\,kg identifies payload placement as the effective lever: with the load's center of mass 4\,cm anterior of the waist axis (cancelling the static moment of the posterior battery packs) and the speed command reduced to 0.40\,m/s, the machine carries 10\,kg at \payTenRate{} and \payTenV\,m/s. Waist stiffening and torso-height corrections did not help: the constraint is dynamic pitch balance, not static capacity.
-\emph{Arm carry:} under one protocol on both machines (pelvis welded,
-same pose and gains; failure = hand drop from the settled unloaded
-position), the hybrid holds \carryHybTwelve\,kg at a 12\,cm threshold
-where the hinged machine holds \carryHinTwelve\,kg. The failure modes
-differ in kind: the hybrid's limit moves
-\carryHybEight$\to$\carryHybSixteen\,kg as the threshold moves
-8$\to$16\,cm (sag-limited: \carryHybSlope\,mm/kg through seven
-servo-compliant joints, shoulder at 71\% at failure), while the hinged
-machine's barely moves, \carryHinEight$\to$\carryHinSixteen\,kg
-(motor-limited: its stiff chain sags \carryHinSlope\,mm/kg until the
-30\,N\,m shoulder saturates). Halving the drive class costs two thirds of the carry rather than half (compliance compounds the torque deficit), and the carry loads a path the hinged machine lacked: the busiest waist cable rises from 52 to 88\,N under a 2\,kg hold.
+\textbf{Capability envelope} (Fig.~\ref{fig:sweeps}; development
+configuration unless 40\,kN/m is stated). \emph{Speed.} The hybrid has a reliable command band: \hsSpdThirtyRate{} at a
+commanded 0.30\,m/s (\hsSpdThirtyV\,m/s achieved), \hsSpdFortyFiveRate{}
+at 0.45\,m/s (\hsSpdFortyFiveV), falls in every trial at 0.60\,m/s, and
+undertracking below the band. Retuning (cadence 1.1$\to$0.8\,Hz,
+swing-height reference 0.24\,m) yields \agilityV\,m/s in \agilityRate{}
+trials with \gaitClr\,mm of clearance (Fig.~\ref{fig:sequence}). Speed
+tracking is approximately 42\% of the command against 65--70\% for the
+hinged machine; the remaining panels use the pre-retuning configuration. \emph{Trunk payload.} Boxes on the torso are carried above
+the tensegrity waist, so that every added kilogram loads the twelve waist
+cables. The success rate is \hsPayTwoRate{} at 2\,kg, \hsPayFiveRate{} at
+5\,kg, \hsPayEightRate{} at 8\,kg and \hsPayTwelveRate{} at 12\,kg, against
+an unaffected rigid trunk up to 20\,kg; at 12\,kg every trial pitches
+backward within seven seconds, and shifting the load 4\,cm forward of the
+waist axis at a 0.40\,m/s command restores 10\,kg to \payTenRate{}, so the
+constraint is dynamic pitch balance rather than static capacity. At
+40\,kN/m ($n=3$ per mass) the ceiling is unchanged (\stiffPayTwelveRate{}
+at 12\,kg), 2\,kg walks \stiffPayTwoRate, and 5 and 8\,kg fall late
+(\stiffPayFiveRate, \stiffPayEightRate) at 0.28--0.41\,m/s because the
+stiffer walker tracks the speed command more closely; reducing the
+command to 0.30\,m/s restores 5\,kg to \stiffPayFiveRetuneRate. Payload
+capacity is therefore set by the controller tuning rather than by cable
+stiffness.
+\emph{Arm carry.} Under a common protocol the hybrid holds \carryHybTwelve\,kg at a 12\,cm
+drop threshold against \carryHinTwelve\,kg for the hinged machine,
+sag-limited versus motor-limited. At 40\,kN/m the hybrid's sag decreases to
+\carryStiffSlope\,mm/kg, it holds \carryStiffTwelve\,kg, and it too
+becomes motor-limited (15\,N\,m shoulder saturating at
+\carryStiffSatMass\,kg); the development configuration's carry deficit is
+thus due to chain compliance rather than drive class.
 
-\section{How Many Joints Does a Humanoid Need?}
+\section{Joint-Count Study and Allocation Rule}
 \label{sec:jointcount}
-The hybrid fixes one point on an axis from no bearings to a bearing at
-every DoF. Table~\ref{tab:jointcount} walks the axis with variants of the
-\emph{same} machine --- identical masses, drives, anthropometry ---
-differing only in which joints are bearings, run under the hybrid's final controller configuration, bracketed by the two endpoints with their own tuning.
+The hybrid occupies one point on an axis from no bearings to a bearing at
+every DoF. Table~\ref{tab:jointcount} traverses this axis with variants of
+the same machine, of identical mass and anthropometry, in which a
+rigidized joint retains its mass but loses its tension actuators; the
+variants run under the pre-retuning controller of the hybrid and are
+bracketed by the two endpoints with their own tuning.
 
 \begin{table}[tb]
 \centering
-\caption{The joint-count axis. Middle rows are variants of the hybrid under its final controller ($n=5$); endpoints carry their own tuning.
-``T-joints'' counts tensegrity (bearing-free) joints. The impact figures
-are from the ankle-joint testbed (Sec.~\ref{sec:jointcell}) and E1
-respectively.}
+\caption{The joint-count axis. The middle rows are variants of the hybrid
+in its development configuration (2.4\,kN/m) under its development
+controller ($n=5$); the endpoints carry their own tuning. ``T-jts'' is
+the number of bearing-free joints and ``brgs'' the articulation hardware
+mass (the hinged value is a uniform 70\,g/DoF allowance).}
 \label{tab:jointcount}
-\setlength{\tabcolsep}{2.6pt}\footnotesize%
+\setlength{\tabcolsep}{2.4pt}\footnotesize%
 \begin{tabular}{@{}lccccl@{}}
 \toprule
 variant & brgs & T-jts & walks & m/s & note\\
 \midrule
-pure tensegrity & 0 & all & --- & --- & stands only; no planner\\
+pure tensegrity & 0 & all & --- & --- & stands anchored only\\
 \textbf{hybrid (design)} & 0.8\,kg & 3 & \textbf{\hybridRate} &
-\hybridSpeed & impact $-$27..32\% (ankle)\\
+\hybridSpeed & ankle impact $-$27..32\%\\
 \;+ rigid waist & 0.8\,kg & 2 & \jcRWaistRate$^\dagger$ & --- &
 tuning mismatch\\
 \;+ rigid ankles & 0.8\,kg & 1 & \jcRAnkleRate & \jcRAnkleV & \\
 \;+ both rigid & 0.8\,kg & 0 & \jcRBothRate & \jcRBothV & \\
 fully hinged (27\,DoF) & 1.9\,kg & 0 & \walkRate$^\ddagger$ & \walkSpeed &
-impacts $+$14..154\% (E1)\\
+impact $+$14..154\%\\
 \bottomrule
-\multicolumn{6}{@{}p{8.2cm}@{}}{\footnotesize $^\dagger$fails under the
-hybrid's tuning; retuned --- one parameter, the torso height target,
-1.20$\to$\jcRWaistTunedTorso{} (the welded torso stands taller than the
-cable-mounted one settles) --- the same joint set with the same arms walks
-\jcRWaistTunedRate{} at \jcRWaistTunedV\,m/s. $^\ddagger$own tuning at
-its 0.30\,m/s operating point; its envelope edge is 0.29\,m/s at a 0.45
-command (Fig.~\ref{fig:sweeps}a). Source of the load traces and E1--E5.}
+\multicolumn{6}{@{}p{8.3cm}@{}}{\footnotesize $^\dagger$fails under the
+hybrid's tuning; with the torso height target retuned from 1.20 to
+\jcRWaistTunedTorso{} it walks in \jcRWaistTunedRate{} trials at
+\jcRWaistTunedV\,m/s. $^\ddagger$own tuning at 0.30\,m/s; envelope edge
+at 0.29\,m/s (Fig.~\ref{fig:sweeps}a).}
 \end{tabular}
 \end{table}
 
-\textbf{The case for retaining bearings.} \emph{Load path}: without overlap and counter-winding a hinge-free joint is not a structure. \emph{Torque}: a bearing delivers full torque at every angle; a cable joint's authority collapses mid-stride (Table~\ref{tab:authority}). \emph{Planning}, in practice the dominant layer: every bearing removes three to five DoF from the state a predictive controller reasons over. The hybrid's planner handles 46 DoF at $0.3\times$ real time; the pure machine has \cgDof, and no controller in this work or, to our knowledge, elsewhere stabilizes it. Bearings at hips and knees make the
-machine \emph{plannable} and its gait torques available at every pose.
+\textbf{Bearings versus cable interfaces.} A bearing delivers full torque
+at every joint angle, whereas the authority of a cable joint collapses
+mid-stride (Table~\ref{tab:authority}), and each bearing removes three to
+five DoF from the planner's state (46 for the hybrid, \cgDof{} for the
+pure machine). A cable interface, in turn, provides impact attenuation ($-27$..$32\%$ at the ankle
+testbed), torso compliance ($\pm\headTorsoRP^\circ$ at the design point,
+$\pm\torsoRP^\circ$ in the development configuration), lighter actuation
+(0.165 versus 0.96\,kg drives), graceful degradation, and robustness to
+mass changes (battery-removal test). Its costs are reduced \emph{speed} (rigidizing increases gait speed
+monotonically, $\hybridSpeed\rightarrow\jcRAnkleV\rightarrow\jcRBothV$\,m/s
+under one controller in the development configuration), increased
+\emph{planner load} ($\headRt\times$ against $\realtimeFactor\times$ real
+time), reduced \emph{payload} (Fig.~\ref{fig:sweeps}b), and \emph{tuning
+sensitivity}: the gait tuned for the compliant waist fails
+(\jcRWaistRate) when that joint is rigidized. Success rates along the axis
+are indistinguishable at these sample sizes; the speed ordering is the
+measured effect.
 
-\textbf{Consequences of replacing bearings with cable interfaces.} Replacing a bearing with a cable interface provides impact attenuation ($-27$..$32\%$ at the ankle testbed; $\pm2^\circ$ torso compliance), an order of magnitude lighter actuation (0.165 vs.\ 0.96\,kg drives at cage-radius moment arms), graceful degradation (no single cable is structural), and robustness to mass change (the battery-removal test). The corresponding costs are
-\emph{speed} (rigidizing raises gait speed monotonically, $\hybridSpeed\rightarrow\jcRAnkleV\rightarrow\jcRBothV$\,m/s under one controller, because part of each push-off is stored elastically), \emph{planner
-load} (each cable joint returns six DoF; $0.3\times$ real time vs.\ the
-hinged machine's $0.6\times$), \emph{payload} (the waist ceiling of
-Fig.~\ref{fig:sweeps}b), and \emph{tuning fragility}, most visible in Table~\ref{tab:jointcount}: the gait tuned for the compliant waist
-fails outright (\jcRWaistRate) when that joint is rigidized. Joint compliance is not a drop-in property; controller and structure must be tuned jointly.
+\textbf{Allocation rule.} Bearings should be placed where the gait's torque requirements
+concentrate, and series-elastic cable interfaces where impacts enter the
+structure. The hips and knees carry the largest, most pose-dependent
+torques and no first impact; the ankles contact the ground first and
+require an order of magnitude less moment; the waist is the marginal case,
+providing torso compliance at a cost in speed, payload and tuning. The rule reflects present-day drives and planners rather than a
+fundamental limit.
 
-\textbf{Allocation rule.} Place bearings where the gait's torque requirements concentrate, and cable interfaces where impacts enter the structure. Hips and knees carry the largest,
-most pose-varied torques and no first impact: bearings. Ankles meet the
-ground first and need an order of magnitude less moment: cables. The waist
-is the marginal case: a cable waist provides torso compliance at a cost in speed, payload and tuning effort. The hybrid's split saves 1.1\,kg of bearings over the fully hinged machine, recovers the impact attenuation and degradation tolerance that machine lacks, and remains controllable.
-
-\textbf{The biological counterexample.} The human body appears to contradict this rule. Though jointed at every limb, biotensegrity reads the skeleton as a continuous tension network whose articular surfaces are held by ligament and muscle tension rather than axles \cite{scarr2014biotensegrity}: the joint sits inside the tensegrity. The biological knee addresses both problems that led this design to bearings: the patella enlarges the extensor moment arm where the cages fall short of $r_{\mathrm{eff}}\ge\rNeedHip$\,mm, and graded co-contraction supplies closure and disturbance rejection. Biology adds the controller for the high-dimensional compliant state that our planner does not handle. The rule is thus a statement about present-day drives and planners; the human body indicates the all-tensegrity endpoint is reachable with sufficient control.
-
-\section{Discussion and Open Questions}
+\section{Discussion}
 \label{sec:discussion}
-\textbf{Measured benefits of the tensegrity paradigm.} The paradigm provides mass efficiency (compression network at minimum wall, \strutSpecMass\,kg), a transmission at no additional mechanical cost (the prestressed network \emph{is} the transmission; E4), redundancy (E3), impact attenuation in hinge-free form only (Sec.~\ref{sec:jointcell}), hence tensegrity at ankles and waist, and variable stiffness as a co-contraction cost rather than an assembly parameter. It does not provide pose-independent torque, which binds hardest at hips and knees.
-
-\textbf{Realizability.} A simulation-only study must state how its claims can be tested in hardware. Every member and drive is a catalog part with a stated rating, and the machine decomposes into bench-scale units. Table~\ref{tab:ladder} attaches to each unit a prediction simulated under the conditions the bench would apply; discrepancies then localize at components rather than inside a 46-DoF machine. Geometric predictions (twist, closure, moment arms) do not depend on the largest model gap, cable stiffness; the compliance predictions do, and sit early in the ladder where refitting is cheapest. Each stage tests the simulation before the next is built.
-
-\begin{table}[tb]
-\centering
-\caption{Staged validation ladder: bench-scale units in build order, each with the simulated prediction a bench test would check. The arm row uses the protocol of Fig.~\ref{fig:sweeps}c.}
-\label{tab:ladder}
-\setlength{\tabcolsep}{2.5pt}\footnotesize%
-\begin{tabular}{@{}llp{2.7cm}@{}}
-\toprule
-stage (unit) & quantity & prediction\\
-\midrule
-cell (3 tubes, 9 cables) & twist; stiffness vs.\ prestress &
-$29.8^\circ\pm0.4^\circ$; flat\\
-ankle (plate, mast, & arms; N\,m/100\,N &
-\benchAnkleArmA{}--\benchAnkleArmB\,mm; \benchAnkleMoment\\
-\;12 cables, 2 drives) & drop at 40 / 400\,kN/m & $-$27..32\% /
-inverts\\
-knee pin, hip gimbal & 1.5\,kN proof load & SF\,2.3, no yield\\
-arm (7 DoF, mount) & loaded sag; first mode & \carryHybSlope\,mm/kg;
-3.6\,Hz\\
-waist (torso on pelvis) & sink; capacity &
-\benchWaistSink\,mm/100\,N; holds 200, fails 300\,N\\
-leg (guided-pelvis jig) & cable T vs.\ load &
-\benchLegT$\to$\benchLegTTwo\,N at $+$200\,N\\
-machine & stand, then walk & \agilityRate{} at \agilityV\,m/s\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Limitations.} Everything is simulated: no tendon friction, hysteresis, creep or cable mass, and cables $\sim$\stiffGapSeries$\times$ softer than the specified series-elastic element. The joint-scale impact result is stiffness-swept (it inverts at $10\times$); the whole-machine compliance numbers are not and are the most exposed. Cost of transport (\walkCot) is 5--15$\times$ that of comparable machines and the planner runs at $0.3\times$ real time. Mass parity against an equivalent rigid frame, contact safety, and fatigue remain untested.
-
-\textbf{Open questions.} \emph{Can a hinge-free humanoid be planned for?} The structure exists (Sec.~\ref{sec:jointcell}) and biology indicates the control problem is solvable; whether by predictive control over a $\sim$210-DoF state or a reduced cell-as-joint model remains open. \emph{Which design variables dominate the next iteration?} Moment-arm geometry (Eq.~\eqref{eq:authority} as a workspace constraint) and tension-member softness, whose trade shows a cliff between 40 and 400\,kN/m.
+\textbf{Limitations.} All results are obtained in simulation, without
+tendon friction, hysteresis, creep or cable mass. The headline walker,
+payload, carry, robustness and joint drop tests are evaluated at the
+specified 20--168\,kN/m; the speed sweep, joint-count study and ankle
+controls remain at the 2.4\,kN/m development configuration. In hardware, tendon friction and hysteresis will bias the delivered
+tension and cause prestress to drift; the series-elastic element mitigates
+both by converting tension into a displacement measurement, but tension
+sensing and periodic re-tensioning must be provided for, while cable mass
+(\ropeMass\,kg) is negligible. The planner runs at $\headRt\times$ real
+time at the design point; a shorter horizon on a reduced model, a
+multi-rate scheme with a fast tension loop, or a policy distilled from the
+planner's rollouts would be required to close this gap, none of which is
+evaluated here. The AK70-10-class hip
+and knee drives (24.8\,N\,m peak, approximately 8\,N\,m rated) deliver
+approximately 77\,N\,m peak and 26\,N\,m continuous through the 3:1 tendon
+reduction; the planner's 80\,N\,m bound corresponds to the peak, the mean
+command (\headLegDuty\% duty) lies within the continuous rating, and the
+99th percentile (\headLegNmPeak\,N\,m) within the peak. Over
+\headTorqueWalkSeconds\,s of logged walking at the design point, commands
+above the 74\,N\,m drive peak occur in \headTorqueOverPeakEpisodes{}
+isolated episodes of at most \headTorqueOverPeakMaxMs\,ms, commands above
+the continuous rating occupy \headTorqueOverContPct\% of the time, and the
+RMS demand, which determines thermal load, is \headMotorRmsNm\,N\,m at the
+motor for the worst joint, \headMotorRmsPct\% of the rating. The sample sizes ($n=3$--10) resolve speed differences but not
+success-rate differences of one or two trials. The cost of transport
+(\walkCot) is 5--15$\times$ that of comparable machines.
 
 \section{Conclusion}
-This paper quantified the trade-off between articulated joints and tensegrity structure within one design family. A humanoid made only of tensegrity cells stands, given overlapped cages and counter-wound cable families, but presents \cgDof{} DoF that no planner stabilizes. A fully hinged variant walks, but raises rather than attenuates impact loads, and its cable network does not meet its own torque specification at gait poses. Between them, a 1.68\,m, \hybridMass\,kg hybrid with bearings at the eight DoF carrying the gait's torque and tensegrity joints where impacts enter walks at \hybridSpeed\,m/s in \hybridRate{} of trials, the lightest per unit height in Table~\ref{tab:compare}. Rigidizing its tensegrity joints increases speed and reduces compliance; removing its bearings removes controllability. The allocation principle (bearings where torque requirements concentrate, cable interfaces where impacts enter) and the reported trade data constitute one iteration of an MPC-in-the-loop design process and identify the parameters for the next.
+Within a single design family, a humanoid composed only of tensegrity
+cells stands when anchored, given overlapping cages and counter-wound
+cable families, but presents \cgDof{} free DoF for which no controller is
+available; a fully hinged variant walks, but its cables increase impact
+loads and cannot deliver the specified torques at gait poses. Between
+these extremes, a 1.68\,m, \hybridMass\,kg hybrid with bearings at the
+eight torque-carrying DoF and tensegrity joints where impacts enter walks
+at \headV\,m/s in \headRate{} trials at the specified cable stiffness,
+with a gait that transfers across the entire 20--168\,kN/m range.
+Rigidizing its tensegrity joints increases speed and removes compliance;
+removing its bearings removes controllability. As a design study, the
+results indicate that the concept warrants hardware development: the
+machine has less than half the mass of size-matched humanoids and is
+controllable by a predictive planner. The allocation rule and trade-off
+data constitute one iteration of an MPC-in-the-loop design process and
+identify the parameters for the next, namely moment-arm geometry and cable
+stiffness.
 
-\section*{Reproducibility}
-All code (generator, MJPC task, experiments, analysis) will be public on acceptance; the video attachment shows the gait. One script regenerates every figure and quantity from logged runs.
+\section*{Reproducibility and Acknowledgment}
+All code (generator, MJPC task, experiments and analysis) will be released
+on acceptance, the accompanying video shows the gait, and a single script
+regenerates every figure and quantity from the logged runs. AI has been used to support all aspects of this work (Claude Fable 5.1,
+Anthropic, via Claude Code). Specifically, (a) \emph{code}: the parametric
+MuJoCo model generator, the MJPC task and analytic gait reference
+(Sec.~\ref{sec:authority}), the experiment, dimensioning and analysis
+scripts (Secs.~\ref{sec:design}--\ref{sec:jointcount}), and the pipeline
+that regenerates every reported quantity were written by the AI to the
+authors' specifications and corrected under their direction;
+(b) \emph{figures}: Figs.~\ref{fig:overview}, \ref{fig:sequence} and
+\ref{fig:sweeps} were rendered or plotted by AI-written code from logged
+data, and Fig.~\ref{fig:joint} was drawn by the AI; (c) \emph{text}: the
+manuscript, including the abstract and all sections, was drafted by the AI
+from the authors' design decisions, results and outline, and was reviewed,
+corrected and edited by the authors, who defined the research question and
+design goals, directed every experiment, verified the results against the
+simulation logs, and take full responsibility for the content.
 
 \bibliographystyle{IEEEtran}
 \bibliography{../references/library}

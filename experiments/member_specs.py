@@ -260,6 +260,22 @@ def main():
     stiff_ratio = np.median([r["k_rope"] / r["k_model"] for r in tendons.values()])
 
     total = m_strut + m_ten + m_node + m_hinge
+
+    # --- articulation-hardware safety factors against the measured stumble
+    # reaction (the hybrid's knee: alloy-steel clevis pin D12x1.5 in a
+    # 61802 deep-groove bearing pair).  The pin is checked in double shear
+    # (4130 normalised, tau_allow ~ 250 MPa on the tube section); the
+    # bearing pair against its catalogue static rating C0 (SKF 61802:
+    # 1.66 kN each), which is the governing element.
+    grf_stumble = 3.0 * hinge                      # per-strut -> total GRF
+    pin_area = np.pi / 4 * (0.012**2 - 0.009**2)   # D12 x 1.5 wall
+    pin_capacity = 2.0 * pin_area * 250e6          # double shear
+    C0_61802 = 1.66e3
+    sf_pin = pin_capacity / grf_stumble
+    sf_bearing = 2.0 * C0_61802 / grf_stumble
+    print(f"\narticulation hardware vs {grf_stumble:.0f} N stumble reaction:"
+          f" pin SF {sf_pin:.0f}, 61802 pair SF {sf_bearing:.1f} (governs)")
+
     print(f"\nnodes: {n_nodes} clusters x {NODE_G:.0f} g = {m_node:.2f} kg")
     print(f"joint bearings: {n_hinge_dof} hinge DoF x "
           f"{BEARING_G_PER_DOF:.0f} g = {m_hinge:.2f} kg")
@@ -277,6 +293,9 @@ def main():
                    n_nodes=n_nodes, total=total,
                    n_hinge_dof=n_hinge_dof, m_hinge=m_hinge,
                    bearing_g_per_dof=BEARING_G_PER_DOF,
+                   grf_stumble=float(grf_stumble),
+                   knee_pin_SF=float(sf_pin),
+                   knee_bearing_SF=float(sf_bearing),
                    stiffness_ratio=float(stiff_ratio)),
               open(OUT, "w"), indent=1, default=str)
     print("specs ->", OUT)
