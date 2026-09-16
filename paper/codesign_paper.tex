@@ -351,11 +351,11 @@ about joint $j$ and $\Fmax_c$ its tension limit. This is the per-DoF
 projection of the wrench-feasibility condition for cable-driven parallel
 robots \cite{bosscher2004wrench,gouttefarde2007wfw}; no novelty is claimed
 for the bound, only for its application as a requirement over the entire
-trajectory. Applied in this way it revealed three design errors, among them zero
-authority in one direction at the hip yaw and wrist, because all cable
-families shared one handedness (Sec.~\ref{sec:jointcell}). The bound is
-considerably weaker than the assembly-pose value suggests
-(Table~\ref{tab:authority}):
+trajectory. Applied in this way, the bound identified three geometric defects in an
+early iteration of the design, among them zero authority in one direction
+at the hip yaw and wrist, because all cable families shared one handedness
+(Sec.~\ref{sec:jointcell}). Evaluated at the assembly pose alone, the bound
+overstates the available authority (Table~\ref{tab:authority}):
 at assembly all 27 DoF are bidirectional (worst margin
 $\authHomeAll\times$), whereas at logged gait poses \authShortGaitAll{} of
 27 DoF fall below their torque limit (hip pitch $\authGaitHip\times$, knee
@@ -393,8 +393,9 @@ planner of MJPC \cite{howell2022mjpc,tassa2012synthesis} with control
 limits \cite{tassa2014control}; the horizon and planning step are 0.6\,s
 and 20\,ms for the hinged task and 0.42\,s and 8\,ms for the hybrid (set
 by the ankle-cable foot mode), with the plant integrated at 4\,ms.
-Hand-designed cost terms alone produced only stepping in place. The remedy
-is an \emph{analytic gait reference evaluated inside the cost}: gait phase
+Rather than shaping the cost by hand, which yields stepping in place, the
+controller tracks an \emph{analytic gait reference evaluated inside the
+cost}: gait phase
 is a function of time alone, the pelvis tracks a lateral sway that unloads
 each foot before it lifts, the swing feet follow a sinusoidal clearance
 profile, and the landing point is biased by the center-of-mass velocity
@@ -442,8 +443,8 @@ once slack is taken up), whereas shoulder co-contraction changes it from
 \stiffCoLo{} to \stiffCoHi\,N/m ($\stiffCoRatio\times$) without additional
 hardware.
 \textbf{E3, degradation.} All \eThreeSinglesOk/\eThreeSinglesN{} tested single-cable cuts and all
-random losses of up to $k=8$ cables survive standing plus a push; only an
-adversary selecting against the authority margin causes failure at $k=8$.
+random losses of up to $k=8$ cables survive standing plus a push; only an adversary selecting against the authority margin causes a fall
+at $k=8$.
 No tested single cable is structurally critical, whereas one failed
 gearbox disables a joint of a rigid robot. \textbf{E4, proximal mass.} Relocating the motor masses to the
 joints they drive, at constant total mass, reduces speed from \walkSpeed{}
@@ -452,10 +453,10 @@ sampling uncertainty). \textbf{E5, tendon realizability.} When the logged
 walking torques are mapped through the bounded tension distribution, a
 cable is pinned at its 1.5\,kN limit in \tensSatPct\% of states, leaving
 up to \tensResid\,N\,m undelivered, and the 99th-percentile demand is
-\tensNeeded\,N, $1.6\times$ the rating. Re-planning within the achievable
-envelope, a gait exists for the full network (\eSixtendonallRate) but not
-for the bill of materials (\eSixtendonbomRate): the topology is
-sufficient, the specified actuation set is not.
+\tensNeeded\,N, $1.6\times$ the rating. Re-planning within the achievable envelope, a gait exists for the full
+cable network (\eSixtendonallRate) but not for the \numMotors-motor bill
+of materials (\eSixtendonbomRate), which isolates the shortfall to the
+hinged variant's actuation set rather than to its cable topology.
 
 \section{The Bearing-Free Joint and the Pure Tensegrity Variant}
 \label{sec:jointcell}
@@ -591,7 +592,7 @@ rope) the comparison inverts and the cable joint lands \stiffSensTenLo{}
 to \stiffSensTenHi\% harder than the pin joint. Geometry and series
 elasticity are therefore jointly necessary, consistent with bench-scale
 tensegrity legs \cite{mortensen2025leg}.
-\textbf{Prestress-tunable stiffness remains absent}, for a material reason
+\textbf{Prestress does not tune stiffness at rope modulus}, for a material reason
 that follows from the standard decomposition \cite{guest2006stiffness}:
 the tangent stiffness is the sum of an elastic term of order $EA/L$ and a
 geometric term of order $T/L$, and prestress modulates stiffness only when
@@ -770,7 +771,7 @@ tuning mismatch\\
 fully hinged (27\,DoF) & 1.9\,kg & 0 & \walkRate$^\ddagger$ & \walkSpeed &
 impact $+$14..154\%\\
 \bottomrule
-\multicolumn{6}{@{}p{8.3cm}@{}}{\footnotesize $^\dagger$fails under the
+\multicolumn{6}{@{}p{8.3cm}@{}}{\footnotesize $^\dagger$does not walk under the
 hybrid's tuning; with the torso height target retuned from 1.20 to
 \jcRWaistTunedTorso{} it walks in \jcRWaistTunedRate{} trials at
 \jcRWaistTunedV\,m/s. $^\ddagger$own tuning at 0.30\,m/s; envelope edge
