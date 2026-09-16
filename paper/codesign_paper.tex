@@ -657,8 +657,8 @@ reduce the speed to \walkerKStiffV\,m/s. Leg-torque demand is unchanged
 ankle duty decreases from \hybridAnkleDuty\% to \walkerKStiffAnkleDuty\%
 and torso excursion from $\pm\torsoRP^\circ$ to
 $\pm\walkerKStiffTorsoRP^\circ$ between the development configuration
-and 168\,kN/m; the development configuration thus overstates torso
-compliance and understates planning cost
+and 168\,kN/m; the development configuration is therefore optimistic with respect to
+torso compliance and conservative with respect to planning cost
 (\walkerKTwentyRt--\walkerKStiffRt$\times$ real time). \emph{Parameter robustness.} At 20\,kN/m, ten trials with every
 interface cable's stiffness drawn from $\pm30\%$ and its prestress from
 $\pm20\%$, every body mass from $\pm15\%$, and ground friction from
@@ -792,8 +792,8 @@ monotonically, $\hybridSpeed\rightarrow\jcRAnkleV\rightarrow\jcRBothV$\,m/s
 under one controller in the development configuration), increased
 \emph{planner load} ($\headRt\times$ against $\realtimeFactor\times$ real
 time), reduced \emph{payload} (Fig.~\ref{fig:sweeps}b), and \emph{tuning
-sensitivity}: the gait tuned for the compliant waist fails
-(\jcRWaistRate) when that joint is rigidized. Success rates along the axis
+sensitivity}: the gait tuned for the compliant waist does not walk (\jcRWaistRate)
+when that joint is rigidized. Success rates along the axis
 are indistinguishable at these sample sizes; the speed ordering is the
 measured effect.
 
